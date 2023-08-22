@@ -17,9 +17,5 @@ class Camera(pygame.sprite.Group):
 
     def render_all(self, surface):
         for sprite in self.sprites():
-            if sprite.rect.colliderect(self.canvas.get_rect()):
-                offset_pos = sprite.rect.topleft - self.offset
-                surface.blit(pygame.transform.scale(sprite.image,
-                        (sprite.image.get_width() * self.scale_factor,
-                        sprite.image.get_height() * self.scale_factor)), offset_pos)
-                #surface.blit(sprite.image, offset_pos)
+            offset_pos = sprite.rect.topleft - self.offset
+            surface.blit(sprite.image, offset_pos)
