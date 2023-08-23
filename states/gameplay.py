@@ -25,23 +25,23 @@ class Gameplay(State):
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
                             pygame.surface.Surface((finals.tile_size, finals.tile_size)))
 
-    def horizontal_tile_collision(self):  # TODO: MOVE TO LEVEL class
-        self.player.rect.x += self.player.direction.x * self.player.speed
-        for hit in pygame.sprite.spritecollide(self.player, self.sg_tiles_colliders, False):
-            if self.player.direction.x < 0:
-                self.player.rect.left = hit.rect.right
-            elif self.player.direction.x > 0:
-                self.player.rect.right = hit.rect.left
-            self.player.position = pygame.math.Vector2(self.player.rect.topleft)
+    def entity_movement_collision_horizontal(self, entity):  # TODO: MOVE TO LEVEL class
+        entity.movement_horizontal() # Entity must have Physics2D component for collision
+        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
+            if entity.direction.x < 0:
+                entity.rect.left = hit.rect.right
+            if entity.direction.x > 0:
+                entity.rect.right = hit.rect.left
 
-    def vertical_tile_collision(self):
-        for hit in pygame.sprite.spritecollide(self.player, self.sg_tiles_colliders, False):
-            if self.player.direction.y > 0:
-                self.player.rect.bottom = hit.rect.top
-                self.player.direction.y = 0
-            elif self.player.direction.y < 0:
-                self.player.rect.top = hit.rect.bottom
-            self.player.position = pygame.math.Vector2(self.player.rect.topleft)
+    def entity_movement_collision_vertical(self, entity):
+        entity.movement_vertical() # Entity must have Physics2D component for collision
+        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
+            if entity.direction.y > 0:
+                entity.rect.bottom = hit.rect.top
+                entity.direction.y = 0
+            if entity.direction.y < 0:
+                entity.rect.top = hit.rect.bottom 
+                entity.direction.y = 0
 
     def get_event(self, event):
         if event.type == pygame.QUIT:
@@ -50,15 +50,16 @@ class Gameplay(State):
             self.on_videoresize()
 
     def update(self, dt):
-        # Update Sprite groups
         self.sg_camera.update(dt)
         self.sg_tiles_colliders.update(dt)
         self.sg_tiles_non_colliders.update(dt)
+
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
         self.sg_tiles_non_colliders.attach_to(self.player)
-        self.horizontal_tile_collision()
-        self.vertical_tile_collision()
+
+        self.entity_movement_collision_horizontal(self.player)
+        self.entity_movement_collision_vertical(self.player)
 
     def draw(self):
         self.canvas.fill(finals.COLOR_GREEN_SUBTLE)

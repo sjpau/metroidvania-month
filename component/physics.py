@@ -1,14 +1,23 @@
 import pygame
 
 class Physics2D:
-    def __init__(self, position, size, e_type=0):
-        self.position = position
+    def __init__(self, size, e_type=0, speed=1.5):
         self.size = size
         self.type = e_type
-        self.velocity = [0, 0]
-        self.movement = [False, False]
+        self.speed = speed
+        self.direction = pygame.math.Vector2(0,0)
+        self.gravity = 0.1
+        self.jump_speed = -1.5
 
-    def p2d_update(self):
-        frame_movement = (self.movement[0] + self.velocity[0], self.movement[1] + self.velocity[1])
-        self.position[0] += frame_movement[0]
-        self.position[1] += frame_movement[1]
+    def apply_gravity(self):
+        self.direction.y += self.gravity
+        self.rect.y +=  self.direction.y
+
+    def jump(self):
+        self.direction.y = self.jump_speed
+
+    def movement_horizontal(self):
+        self.rect.x += self.direction.x * self.speed
+    
+    def movement_vertical(self):
+        self.apply_gravity()

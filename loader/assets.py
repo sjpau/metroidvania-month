@@ -9,7 +9,7 @@ def collect_image_paths(directory_path):
 
     return image_paths
 
-sprite_path = 'asset/sprites/player/idle/'
+sprite_path = 'data/sprites/player/idle/'
 sprites_player = {
     'idle': collect_image_paths(sprite_path),
 }

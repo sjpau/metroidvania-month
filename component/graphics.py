@@ -1,9 +1,9 @@
 import pygame
 
 class Graphics2D:
-    def __init__(self, image, animations={}):
+    def __init__(self, image, animations={}, s_type='default'):
         self.image = image
-        self.rect = self.image.get_rect()
+        self.type = s_type
         self.animations = animations
         self.current_animation = None
         self.playing_busy = False
@@ -12,7 +12,7 @@ class Graphics2D:
         if name in self.animations:
             self.current_animation = self.animations[name]
 
-    def g2d_update(self, dt):
+    def graphics_update_animation(self, dt):
         if self.current_animation is not None:
             if self.playing_busy:
                 if self.current_animation.current_sprite >= len(self.current_animation.sprites)-1:

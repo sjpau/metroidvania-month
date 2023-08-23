@@ -1,6 +1,6 @@
 import pygame
 
-class Camera(pygame.sprite.Group):
+class Camera(pygame.sprite.Group): 
     def __init__(self, canvas, scale_factor):
         super().__init__()
         self.canvas = canvas

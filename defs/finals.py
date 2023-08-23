@@ -3,6 +3,8 @@ import pygame
 
 tile_size: Final = 16
 
+NEIGHBOUR_OFFSETS = [(-1,0), (-1,-1), (0,-1), (1,-1), (1,0), (0,0), (-1,1), (0,1), (1,1)]
+
 display_resolution: Final = {
     '64x64': (64, 64),
     '320x320': (320, 320),
