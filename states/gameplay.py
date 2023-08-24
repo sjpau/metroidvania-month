@@ -12,16 +12,24 @@ class Gameplay(State):
         self.sg_camera = Camera(self.canvas, self.scale_factor)
         self.sg_tiles_colliders = Camera(self.canvas, self.scale_factor)
         self.sg_tiles_non_colliders = Camera(self.canvas, self.scale_factor)
-        self.sg_fg_decors = Camera(self.canvas, self.scale_factor)
-        self.sg_bg_decors = Camera(self.canvas, self.scale_factor)
+        self.sg_decor_fg = Camera(self.canvas, self.scale_factor)
+        self.sg_decor_bg = Camera(self.canvas, self.scale_factor)
+        self.sg_triggers = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
-                                 self.sg_fg_decors, self.sg_bg_decors,
-                                 self.sg_camera]
-        self.tmx_layers_to_sg = { # TODO: better naming of tmx layers
-            'colliders_1': self.sg_tiles_colliders,
-            'background_1': self.sg_tiles_non_colliders,
+                                 self.sg_decor_fg, self.sg_decor_bg,
+                                 self.sg_camera, self.sg_triggers]
+        self.tmx_tile_layers_to_sg = { # TODO: better naming of tmx layers
+            'colliders': self.sg_tiles_colliders,
+            'background': self.sg_tiles_non_colliders,
         }
-        self.tiles = mapper.unpack_tmx(self.tmx_maps, 'example', self.tmx_layers_to_sg)
+        self.tmx_obj_layers_to_sg = {
+            'decor_fg': self.sg_decor_fg,
+            'decor_bg': self.sg_decor_bg,
+            'triggers': self.sg_triggers,
+        }
+        self.tiles, self.decorations, self.triggers = mapper.unpack_tmx(self.tmx_maps, 'example', 
+                                                                        self.tmx_tile_layers_to_sg, 
+                                                                        self.tmx_obj_layers_to_sg)
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
                             pygame.surface.Surface((finals.tile_size, finals.tile_size)))
 
@@ -51,12 +59,18 @@ class Gameplay(State):
 
     def update(self, dt):
         self.sg_camera.update(dt)
+        self.sg_decor_bg.update(dt)
+        self.sg_decor_fg.update(dt)
+        self.sg_triggers.update(dt)
         self.sg_tiles_colliders.update(dt)
         self.sg_tiles_non_colliders.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
         self.sg_tiles_non_colliders.attach_to(self.player)
+        self.sg_decor_bg.attach_to(self.player)
+        self.sg_decor_fg.attach_to(self.player)
+        self.sg_triggers.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
@@ -66,5 +80,8 @@ class Gameplay(State):
         # Draw Sprite groups
         self.sg_tiles_non_colliders.render_all(self.canvas)
         self.sg_tiles_colliders.render_all(self.canvas)
+        self.sg_decor_bg.render_all(self.canvas)
         self.sg_camera.render_all(self.canvas)
+        self.sg_decor_fg.render_all(self.canvas)
+        self.sg_triggers.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

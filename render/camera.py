@@ -1,7 +1,7 @@
 import pygame
 
 class Camera(pygame.sprite.Group): 
-    def __init__(self, canvas, scale_factor):
+    def __init__(self, canvas, scale_factor): # TODO this shit causes stuttering on render?!
         super().__init__()
         self.canvas = canvas
         self.scale_factor = scale_factor
