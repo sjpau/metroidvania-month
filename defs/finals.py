@@ -3,8 +3,6 @@ import pygame
 
 tile_size: Final = 16
 
-NEIGHBOUR_OFFSETS = [(-1,0), (-1,-1), (0,-1), (1,-1), (1,0), (0,0), (-1,1), (0,1), (1,1)]
-
 display_resolution: Final = {
     '64x64': (64, 64),
     '320x320': (320, 320),
@@ -21,6 +19,10 @@ CANVAS_HEIGHT: Final = 180
 
 CAPTION: Final = "Metroidvania month"
 
+PATH_BACKGROUND: Final = "data/png/background.png"
+
 COLOR_BLACK: Final = pygame.Color((16, 13, 19))
 COLOR_RED: Final = pygame.Color((170, 0, 0))
 COLOR_GREEN_SUBTLE: Final = pygame.Color((132, 197, 166))
+COLOR_BROWN_MUD: Final = pygame.Color((106, 70, 52))
+COLOR_BROWN_MUD_LIGHT: Final = pygame.Color((240, 206, 189))

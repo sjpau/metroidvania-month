@@ -4,11 +4,13 @@ import defs.finals as finals
 from entity.player import Player
 from render.camera import Camera
 import loader.mapper as mapper
+from loader.loader import png
 
 class Gameplay(State):
     def __init__(self, tmx_maps):
         super(Gameplay, self).__init__()
         self.tmx_maps = tmx_maps
+        self.background = png(finals.PATH_BACKGROUND)
         self.sg_camera = Camera(self.canvas, self.scale_factor)
         self.sg_tiles_colliders = Camera(self.canvas, self.scale_factor)
         self.sg_tiles_non_colliders = Camera(self.canvas, self.scale_factor)
@@ -76,7 +78,7 @@ class Gameplay(State):
         self.entity_movement_collision_vertical(self.player)
 
     def draw(self):
-        self.canvas.fill(finals.COLOR_GREEN_SUBTLE)
+        self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
         # Draw Sprite groups
         self.sg_tiles_non_colliders.render_all(self.canvas)
         self.sg_tiles_colliders.render_all(self.canvas)
