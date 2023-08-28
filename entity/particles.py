@@ -9,7 +9,7 @@ from render.animation import Animation
 
 import random
 
-class Particle(
+class ParticleDust(
     pygame.sprite.Sprite,
     Entity,
     Graphics2D,
@@ -25,7 +25,7 @@ class Particle(
             'dust': Animation(load_sprites(sprites_env_dust['dust']), 500)
         }
         Entity.__init__(self, image, position)
-        Graphics2D.__init__(self, image, s_type='particle', animations=animations)
+        Graphics2D.__init__(self, image, s_type='particle_dust', animations=animations)
         Physics2D.__init__(self, size)
         self.playing_busy = True
         self.ttl = 500
@@ -34,7 +34,6 @@ class Particle(
         self.sign_y = 1 if random.random() < 0.5 else -1
     
     def update(self, dt):
-        #TODO check for type to play different animations
         self.set_animation('dust')
         self.graphics_update_animation(dt)
         self.sin_counter += 1

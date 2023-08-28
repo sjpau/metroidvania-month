@@ -5,7 +5,7 @@ from entity.player import Player
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
-from entity.particle import Particle
+from entity.particles import ParticleDust
 import random
 
 class Gameplay(State):
@@ -103,7 +103,7 @@ class Gameplay(State):
         if random.random() < 0.01:
             surf =  pygame.Surface((4,4))
             surf.set_colorkey((0,0,0))
-            self.particles_dust.append(Particle(dust_pos, surf, self.sg_dust_bg))
+            self.particles_dust.append(ParticleDust(dust_pos, surf, self.sg_dust_bg))
         for p in self.particles_dust:
             if p.kill:
                 self.particles_dust.remove(p)
