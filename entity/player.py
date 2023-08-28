@@ -6,7 +6,7 @@ from render.animation import Animation
 import loader.assets as assets
 import loader.loader as loader
 
-class Player(
+class Player( #TODO make all animations and sprite flips
     pygame.sprite.Sprite,
     Entity,
     Graphics2D,
@@ -22,19 +22,39 @@ class Player(
         Graphics2D.__init__(self, image, animations=animations)
         Physics2D.__init__(self, size)
         self.group = group
+        self.want_move = {
+            'right': False,
+            'left': False,
+        }
+       
 
-    def get_input(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_RIGHT] or keys[pygame.K_l]:
-            self.direction.x = 1
-        elif keys[pygame.K_LEFT] or keys[pygame.K_h]:
-            self.direction.x = -1
-        else:
-            self.direction.x = 0
-        if keys[pygame.K_SPACE]:
-            self.jump()
+    def handle_input(self, event):
+        keys_right = [pygame.K_RIGHT, pygame.K_l, pygame.K_d]
+        keys_left = [pygame.K_LEFT, pygame.K_h, pygame.K_a]
+        keys_jump = [pygame.K_SPACE]
+        if event.type == pygame.KEYDOWN:
+            k = event.key
+            if k in keys_right:
+                self.want_move['right'] = True
+            elif k in keys_left:
+                self.want_move['left'] = True
+        if event.type == pygame.KEYUP:
+            k = event.key
+            if k in keys_jump:
+                self.jump()
+            if k in keys_right:
+                self.want_move['right'] = False
+            elif k in keys_left:
+                self.want_move['left'] = False
+
 
     def update(self, dt):
-        self.get_input()
-        #self.set_animation('idle')
+        if self.want_move['right']:
+            self.velocity.x = 1
+        if self.want_move['left']:
+            self.velocity.x = -1
+        if not self.want_move['right'] and not self.want_move['left']:
+            self.velocity.x = 0
+
+        self.set_animation('idle')
         self.graphics_update_animation(dt)

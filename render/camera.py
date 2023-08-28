@@ -21,4 +21,3 @@ class Camera(pygame.sprite.Group):
             if self.render_rect.colliderect(sprite.rect):
                 offset_pos = sprite.rect.topleft - self.offset
                 surface.blit(sprite.image, offset_pos)
-        pygame.draw.rect(surface, 'yellow', self.render_rect, 4)

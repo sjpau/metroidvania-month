@@ -5,10 +5,15 @@ from entity.player import Player
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
+from entity.particle import Particle
+import random
 
 class Gameplay(State):
     def __init__(self, tmx_maps):
         super(Gameplay, self).__init__()
+        self.handle = {
+            'player input': True,
+        }
         self.tmx_maps = tmx_maps
         self.background = png(finals.PATH_BACKGROUND)
         self.sg_camera = Camera(self.canvas, self.scale_factor)
@@ -16,10 +21,13 @@ class Gameplay(State):
         self.sg_tiles_non_colliders = Camera(self.canvas, self.scale_factor)
         self.sg_decor_fg = Camera(self.canvas, self.scale_factor)
         self.sg_decor_bg = Camera(self.canvas, self.scale_factor)
+        self.sg_dust_fg = Camera(self.canvas, self.scale_factor)
+        self.sg_dust_bg = Camera(self.canvas, self.scale_factor)
         self.sg_triggers = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
-                                 self.sg_camera, self.sg_triggers]
+                                 self.sg_camera, self.sg_triggers,
+                                 self.sg_dust_fg, self.sg_dust_bg]
         self.tmx_tile_layers_to_sg = { # TODO: better naming of tmx layers
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -34,30 +42,38 @@ class Gameplay(State):
                                                                         self.tmx_obj_layers_to_sg)
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
                             pygame.surface.Surface((finals.tile_size, finals.tile_size)))
-
-    def entity_movement_collision_horizontal(self, entity):  # TODO: MOVE TO LEVEL class
-        entity.movement_horizontal() # Entity must have Physics2D component for collision
-        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
-            if entity.direction.x < 0:
-                entity.rect.left = hit.rect.right
-            if entity.direction.x > 0:
-                entity.rect.right = hit.rect.left
-
-    def entity_movement_collision_vertical(self, entity):
-        entity.movement_vertical() # Entity must have Physics2D component for collision
-        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
-            if entity.direction.y > 0:
-                entity.rect.bottom = hit.rect.top
-                entity.direction.y = 0
-            if entity.direction.y < 0:
-                entity.rect.top = hit.rect.bottom 
-                entity.direction.y = 0
+        self.player_box = pygame.FRect(self.canvas.get_rect())
+        self.particles_dust = []
 
     def get_event(self, event):
         if event.type == pygame.QUIT:
             self.quit = True
         if event.type == pygame.VIDEORESIZE:
             self.on_videoresize()
+        if self.handle['player input']:
+            self.player.handle_input(event)
+
+    def entity_movement_collision_horizontal(self, entity): # TODO move to entity class?
+        entity.movement_horizontal() # Entity must have Physics2D component for collision
+        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
+            if entity.velocity.x < 0:
+                entity.rect.left = hit.rect.right
+            if entity.velocity.x > 0:
+                entity.rect.right = hit.rect.left
+
+    def entity_movement_collision_vertical(self, entity):
+        entity.movement_vertical() # Entity must have Physics2D component for collision
+        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
+            if entity.velocity.y > 0:
+                entity.rect.bottom = hit.rect.top
+                entity.velocity.y = 0
+                if entity.abilities['hop']:
+                    entity.jumps = 2
+                else:
+                    entity.jumps = 1
+            if entity.velocity.y < 0:
+                entity.rect.top = hit.rect.bottom 
+                entity.velocity.y = 0
 
     def update(self, dt):
         self.sg_camera.update(dt)
@@ -66,6 +82,8 @@ class Gameplay(State):
         self.sg_triggers.update(dt)
         self.sg_tiles_colliders.update(dt)
         self.sg_tiles_non_colliders.update(dt)
+        self.sg_dust_bg.update(dt)
+        self.sg_dust_fg.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -73,17 +91,33 @@ class Gameplay(State):
         self.sg_decor_bg.attach_to(self.player)
         self.sg_decor_fg.attach_to(self.player)
         self.sg_triggers.attach_to(self.player)
+        self.sg_dust_bg.attach_to(self.player)
+        self.sg_dust_fg.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
+
+        self.player_box.center = self.player.rect.center
+        dust_pos = pygame.math.Vector2(random.randint(int(self.player_box.x), int(self.player_box.x + self.player_box.width)),  
+                                        random.randint(int(self.player_box.y), int(self.player_box.y + self.player_box.height)))
+        if random.random() < 0.01:
+            surf =  pygame.Surface((4,4))
+            surf.set_colorkey((0,0,0))
+            self.particles_dust.append(Particle(dust_pos, surf, self.sg_dust_bg))
+        for p in self.particles_dust:
+            if p.kill:
+                self.particles_dust.remove(p)
+                p.group.remove(p)
 
     def draw(self):
         self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
         # Draw Sprite groups
         self.sg_tiles_non_colliders.render_all(self.canvas)
         self.sg_tiles_colliders.render_all(self.canvas)
+        self.sg_dust_bg.render_all(self.canvas)
         self.sg_decor_bg.render_all(self.canvas)
         self.sg_camera.render_all(self.canvas)
         self.sg_decor_fg.render_all(self.canvas)
         self.sg_triggers.render_all(self.canvas)
+        self.sg_dust_fg.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))
