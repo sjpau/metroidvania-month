@@ -19,4 +19,7 @@ class Graphics2D:
                     self.playing_busy = False
                     self.current_animation.current_sprite = 0
             self.current_animation.play(dt)
-            self.image = self.current_animation.get_current_sprite()
+            if self.direction['left']: 
+                self.image = pygame.transform.flip(self.current_animation.get_current_sprite(), True, False)
+            else:
+                self.image = self.current_animation.get_current_sprite()

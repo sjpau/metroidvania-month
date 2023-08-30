@@ -6,7 +6,7 @@ from render.animation import Animation
 import loader.assets as assets
 import loader.loader as loader
 
-class Player( #TODO make all animations and sprite flips
+class Player(
     pygame.sprite.Sprite,
     Entity,
     Graphics2D,

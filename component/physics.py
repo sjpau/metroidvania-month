@@ -21,6 +21,12 @@ class Physics2D:
 
     def movement_horizontal(self):
         self.rect.x += self.velocity.x * self.speed
+        if self.velocity.x < 0:
+            self.direction['left'] = True
+            self.direction['right'] = False
+        elif self.velocity.x > 0:
+            self.direction['right'] = True
+            self.direction['left'] = False
     
     def movement_vertical(self):
         self.apply_gravity()

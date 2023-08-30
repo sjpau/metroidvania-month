@@ -10,3 +10,7 @@ class Entity:
             'slide': False,
             'dash': False,
         }
+        self.direction = {
+            "left": False,
+            "right": False,
+        }
