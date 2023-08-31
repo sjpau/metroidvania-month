@@ -50,7 +50,20 @@ class Trigger(
         self.type = t_type
         self.t_id = t_id
         self.desired_receiver_id = desired_receiver_id
-        self.collider_entities = {}
 
+    def update(self, dt):
+        pass
+
+class Limit(
+    pygame.sprite.Sprite,
+    Entity,
+):
+    def __init__(self, position, image, group, limit_on):
+        super().__init__(group)
+        self.position = position
+        Entity.__init__(self, image, position)
+        self.image = image
+        self.limit_on = limit_on
+    
     def update(self, dt):
         pass

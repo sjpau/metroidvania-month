@@ -8,12 +8,14 @@ def collect_image_paths(directory_path):
 
     return image_paths
 
-sprite_path = 'data/sprites/player/idle/'
+sp = 'data/sprites/player/idle/'
+sp_ = 'data/sprites/player/run/'
 sprites_player = {
-    'idle': sorted(collect_image_paths(sprite_path)),
+    'idle': sorted(collect_image_paths(sp)),
+    'run': sorted(collect_image_paths(sp_)), # TODO better var naming
 }
 
-sprite_path = 'data/sprites/env/dust/'
+sp = 'data/sprites/env/dust/'
 sprites_env_dust = {
-    'dust': sorted(collect_image_paths(sprite_path)),
+    'dust': sorted(collect_image_paths(sp)),
 }

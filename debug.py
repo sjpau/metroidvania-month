@@ -1,7 +1,7 @@
 import pygame
 pygame.init()
 
-status = False
+status = True
 font = pygame.font.Font(None, 30)
 
 def display(info, y = 10, bg = 'Black', fg = 'White', x = 10):

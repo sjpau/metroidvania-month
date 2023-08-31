@@ -12,8 +12,8 @@ class Camera(pygame.sprite.Group):
     def attach_to(self, target):
         x = target.rect.centerx
         y = target.rect.centery
-        self.offset.x += (x - self.half_width - self.offset.x) / 30
-        self.offset.y += (y - self.half_height - self.offset.y) / 30
+        self.offset.x += (x - self.half_width - self.offset.x) / 15
+        self.offset.y += (y - self.half_height - self.offset.y) / 15
         self.render_rect.topleft = self.offset
 
     def render_all(self, surface):

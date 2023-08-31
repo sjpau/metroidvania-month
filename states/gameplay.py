@@ -1,6 +1,7 @@
 import pygame
 from .state import State
 import defs.finals as finals
+import debug 
 from entity.player import Player
 from render.camera import Camera
 import loader.mapper as mapper
@@ -25,11 +26,12 @@ class Gameplay(State):
         self.sg_dust_bg = Camera(self.canvas, self.scale_factor)
         self.sg_triggers = Camera(self.canvas, self.scale_factor)
         self.sg_spawners = Camera(self.canvas, self.scale_factor)
+        self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
                                  self.sg_dust_fg, self.sg_dust_bg,
-                                 self.sg_spawners,]
+                                 self.sg_spawners, self.sg_attack_hitboxes]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -40,17 +42,17 @@ class Gameplay(State):
             'triggers': self.sg_triggers,
             'spawners': self.sg_spawners,
         }
-        self.tiles, self.decorations, self.triggers, self.spawners = mapper.unpack_tmx(self.tmx_maps, 'example', 
-                                                                        self.tmx_tile_layers_to_sg, 
-                                                                        self.tmx_obj_layers_to_sg)
+        _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, 'example', 
+                                    self.tmx_tile_layers_to_sg, 
+                                    self.tmx_obj_layers_to_sg)
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
-                            pygame.surface.Surface((finals.tile_size, finals.tile_size)))
+                            pygame.surface.Surface((finals.tile_size, finals.tile_size)), attack_group=self.sg_attack_hitboxes)
         self.player_box = pygame.FRect(self.canvas.get_rect())
         self.particles_dust = []
         self.handler_entity_spawn = { # TODO how to spawn enemies?
             "player": self.player,
         }
-        for spawner in self.spawners:
+        for spawner in self.sg_spawners:
             spawner.spawn(self.handler_entity_spawn)
 
     def get_event(self, event):
@@ -103,6 +105,7 @@ class Gameplay(State):
         self.sg_tiles_non_colliders.update(dt)
         self.sg_dust_bg.update(dt)
         self.sg_dust_fg.update(dt)
+        self.sg_attack_hitboxes.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -113,6 +116,7 @@ class Gameplay(State):
         self.sg_spawners.attach_to(self.player)
         self.sg_dust_bg.attach_to(self.player)
         self.sg_dust_fg.attach_to(self.player)
+        self.sg_attack_hitboxes.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
@@ -130,6 +134,7 @@ class Gameplay(State):
             if p.kill:
                 self.particles_dust.remove(p)
                 p.group.remove(p)
+        print(self.sg_attack_hitboxes.sprites()[0].rect)
 
     def draw(self):
         self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
@@ -141,4 +146,5 @@ class Gameplay(State):
         self.sg_camera.render_all(self.canvas)
         self.sg_decor_fg.render_all(self.canvas)
         self.sg_dust_fg.render_all(self.canvas)
+        self.sg_attack_hitboxes.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

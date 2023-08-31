@@ -1,7 +1,7 @@
 import pygame
 import pytmx
 from entity.tile import Tile
-from entity.tmx import Decoration, Spawner, Trigger
+from entity.tmx import Decoration, Spawner, Trigger, Limit
 from defs.finals import tile_size
 
 def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
