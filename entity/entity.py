@@ -7,7 +7,7 @@ class Entity:
         self.rect.topleft = position
         self.abilities = {
             'hop': True,
-            'slide': False,
+            'slide': True,
             'dash': False,
         }
         self.direction = {

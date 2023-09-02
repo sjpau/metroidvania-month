@@ -3,6 +3,7 @@ from .state import State
 import defs.finals as finals
 import debug 
 from entity.player import Player
+from entity.shadow import ShadowSprite
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
@@ -27,11 +28,13 @@ class Gameplay(State):
         self.sg_triggers = Camera(self.canvas, self.scale_factor)
         self.sg_spawners = Camera(self.canvas, self.scale_factor)
         self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
+        self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
                                  self.sg_dust_fg, self.sg_dust_bg,
-                                 self.sg_spawners, self.sg_attack_hitboxes]
+                                 self.sg_spawners, self.sg_attack_hitboxes,
+                                 self.sg_shadow_sprites,]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -70,6 +73,9 @@ class Gameplay(State):
                 entity.rect.left = hit.rect.right
             if entity.velocity.x > 0:
                 entity.rect.right = hit.rect.left
+            if not entity.on_ground and entity.abilities['slide']:
+                entity.velocity.y = min(entity.velocity.y, 0.3)
+                entity.jumps = 1
 
     def entity_movement_collision_vertical(self, entity):
         entity.movement_vertical() # Entity must have Physics2D component for collision
@@ -106,6 +112,7 @@ class Gameplay(State):
         self.sg_dust_bg.update(dt)
         self.sg_dust_fg.update(dt)
         self.sg_attack_hitboxes.update(dt)
+        self.sg_shadow_sprites.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -117,6 +124,7 @@ class Gameplay(State):
         self.sg_dust_bg.attach_to(self.player)
         self.sg_dust_fg.attach_to(self.player)
         self.sg_attack_hitboxes.attach_to(self.player)
+        self.sg_shadow_sprites.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
@@ -134,7 +142,13 @@ class Gameplay(State):
             if p.kill:
                 self.particles_dust.remove(p)
                 p.group.remove(p)
-        print(self.sg_attack_hitboxes.sprites()[0].rect)
+        
+        for s in self.sg_shadow_sprites:
+            if s.kill == True:
+                self.sg_shadow_sprites.remove(s)
+        # Cool dashing animation
+        if self.player.in_dash:
+            ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_BLUE)
 
     def draw(self):
         self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
@@ -143,6 +157,7 @@ class Gameplay(State):
         self.sg_decor_bg.render_all(self.canvas)
         self.sg_tiles_non_colliders.render_all(self.canvas)
         self.sg_tiles_colliders.render_all(self.canvas)
+        self.sg_shadow_sprites.render_all(self.canvas)
         self.sg_camera.render_all(self.canvas)
         self.sg_decor_fg.render_all(self.canvas)
         self.sg_dust_fg.render_all(self.canvas)
