@@ -27,6 +27,7 @@ class Gameplay(State):
         self.sg_dust_bg = Camera(self.canvas, self.scale_factor)
         self.sg_triggers = Camera(self.canvas, self.scale_factor)
         self.sg_spawners = Camera(self.canvas, self.scale_factor)
+        self.sg_limits = Camera(self.canvas, self.scale_factor)
         self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
         self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
@@ -34,7 +35,7 @@ class Gameplay(State):
                                  self.sg_camera, self.sg_triggers,
                                  self.sg_dust_fg, self.sg_dust_bg,
                                  self.sg_spawners, self.sg_attack_hitboxes,
-                                 self.sg_shadow_sprites,]
+                                 self.sg_shadow_sprites, self.sg_limits]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -44,8 +45,9 @@ class Gameplay(State):
             'decor_bg': self.sg_decor_bg,
             'triggers': self.sg_triggers,
             'spawners': self.sg_spawners,
+            'camera_limits': self.sg_limits,
         }
-        _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, 'example', 
+        _, _, _, _, self.limits = mapper.unpack_tmx(self.tmx_maps, 'example', 
                                     self.tmx_tile_layers_to_sg, 
                                     self.tmx_obj_layers_to_sg)
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
@@ -57,6 +59,27 @@ class Gameplay(State):
         }
         for spawner in self.sg_spawners:
             spawner.spawn(self.handler_entity_spawn)
+
+        self.player_shadow_cd = 40
+        self.player_shadow_count = 0
+
+        # Calculate level borders
+        min_x = None
+        max_x = None
+        min_y = None
+        max_y = None
+        for tile in self.limits:
+            x, y, width, height = tile.rect
+            if min_x is None or x < min_x:
+                min_x = x
+            if max_x is None or x + width > max_x:
+                max_x = x + width
+            if min_y is None or y < min_y:
+                min_y = y
+            if max_y is None or y + height > max_y:
+                max_y = y + height
+        for camera in self.sg_camera_groups:
+            camera.set_level_borders(min_x, min_y, max_x, max_y)
 
     def get_event(self, event):
         if event.type == pygame.QUIT:
@@ -113,6 +136,7 @@ class Gameplay(State):
         self.sg_dust_fg.update(dt)
         self.sg_attack_hitboxes.update(dt)
         self.sg_shadow_sprites.update(dt)
+        self.sg_limits.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -125,6 +149,7 @@ class Gameplay(State):
         self.sg_dust_fg.attach_to(self.player)
         self.sg_attack_hitboxes.attach_to(self.player)
         self.sg_shadow_sprites.attach_to(self.player)
+        self.sg_limits.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
@@ -162,4 +187,5 @@ class Gameplay(State):
         self.sg_decor_fg.render_all(self.canvas)
         self.sg_dust_fg.render_all(self.canvas)
         self.sg_attack_hitboxes.render_all(self.canvas)
+        self.sg_limits.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

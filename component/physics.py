@@ -11,7 +11,7 @@ class Physics2D:
         self.jump_speed = -2.8
         self.jumps = 1
         self.dashing = 0
-        self.dash_cd = 60
+        self.dash_cd = 100
         self.in_dash = False
 
     def apply_gravity(self):
