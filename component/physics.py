@@ -26,9 +26,9 @@ class Physics2D:
     def dash(self, direction):
         if not self.dashing:
             if self.direction['right']:
-                self.dashing = self.dash_cd + 20
+                self.dashing = self.dash_cd + 30
             if self.direction['left']:
-                self.dashing = -self.dash_cd - 20
+                self.dashing = -self.dash_cd - 30
 
     def movement_horizontal(self):
         self.rect.x += self.velocity.x * self.speed

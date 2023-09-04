@@ -20,6 +20,9 @@ class Player(
         animations = {
             'idle': Animation(loader.load_sprites(assets.sprites_player['idle']), 300),
             'run': Animation(loader.load_sprites(assets.sprites_player['run']), 70),
+            'dash': Animation(loader.load_sprites(assets.sprites_player['dash']), 40),
+            'up': Animation(loader.load_sprites(assets.sprites_player['up']), 100),
+            'down': Animation(loader.load_sprites(assets.sprites_player['down']), 100),
         }
         Entity.__init__(self, image, position)
         Graphics2D.__init__(self, image, animations=animations)
@@ -83,8 +86,15 @@ class Player(
         self.attack_melee_horizontal.set_attack_hitbox_to_direction(self.attack_direction)
         self.attack_melee_vertical.set_attack_hitbox_to_direction(self.attack_direction)
         self.dash_update()
-        if self.velocity.x != 0 and self.velocity.y == 0:
+        if self.velocity.y < 0:
+            self.set_animation('up')
+        elif self.velocity.y > 0:
+            self.set_animation('down')
+        if self.velocity.x != 0 and self.velocity.y == 0 and not self.in_dash:
             self.set_animation('run')
-        else:
+        if self.in_dash:
+            self.set_animation('dash')
+        if self.velocity.x == 0 and self.velocity.y == 0:
             self.set_animation('idle')
         self.graphics_update_animation(dt)
+        print(self.dashing)
