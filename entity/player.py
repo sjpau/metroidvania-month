@@ -97,4 +97,3 @@ class Player(
         if self.velocity.x == 0 and self.velocity.y == 0:
             self.set_animation('idle')
         self.graphics_update_animation(dt)
-        print(self.dashing)

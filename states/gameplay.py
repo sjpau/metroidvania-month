@@ -3,12 +3,17 @@ from .state import State
 import defs.finals as finals
 import debug 
 from entity.player import Player
+from entity.enemy import Enemy
 from entity.shadow import ShadowSprite
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
 from entity.particles import ParticleDust
 import random
+
+from loader.assets import sprites_enemy_melee_bandit
+from render.animation import Animation
+from loader.loader import load_sprites
 
 class Gameplay(State):
     def __init__(self, tmx_maps):
@@ -28,6 +33,7 @@ class Gameplay(State):
         self.sg_triggers = Camera(self.canvas, self.scale_factor)
         self.sg_spawners = Camera(self.canvas, self.scale_factor)
         self.sg_limits = Camera(self.canvas, self.scale_factor)
+        self.sg_enemies = Camera(self.canvas, self.scale_factor)
         self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
         self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
@@ -35,7 +41,8 @@ class Gameplay(State):
                                  self.sg_camera, self.sg_triggers,
                                  self.sg_dust_fg, self.sg_dust_bg,
                                  self.sg_spawners, self.sg_attack_hitboxes,
-                                 self.sg_shadow_sprites, self.sg_limits]
+                                 self.sg_shadow_sprites, self.sg_limits,
+                                 self.sg_enemies,]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -54,11 +61,15 @@ class Gameplay(State):
                             pygame.surface.Surface((finals.tile_size, finals.tile_size)), attack_group=self.sg_attack_hitboxes)
         self.player_box = pygame.FRect(self.canvas.get_rect())
         self.particles_dust = []
-        self.handler_entity_spawn = { # TODO how to spawn enemies?
-            "player": self.player,
-        }
         for spawner in self.sg_spawners:
-            spawner.spawn(self.handler_entity_spawn)
+            if spawner.entity_spawn == 'player':
+                spawner.spawn_entity(self.player)
+            if spawner.entity_spawn == 'melee_bandit':
+                animations_enemy_melee_bandit = {
+                    'idle': Animation(load_sprites(sprites_enemy_melee_bandit['idle']), 300),
+                }
+                e = Enemy(pygame.math.Vector2(0,0), self.sg_enemies, (16, 16), pygame.Surface((16,16)), animations=animations_enemy_melee_bandit, attack_group=self.sg_attack_hitboxes)
+                spawner.spawn_entity(e)
 
         self.player_shadow_cd = 40
         self.player_shadow_count = 0
@@ -137,6 +148,7 @@ class Gameplay(State):
         self.sg_attack_hitboxes.update(dt)
         self.sg_shadow_sprites.update(dt)
         self.sg_limits.update(dt)
+        self.sg_enemies.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -150,6 +162,7 @@ class Gameplay(State):
         self.sg_attack_hitboxes.attach_to(self.player)
         self.sg_shadow_sprites.attach_to(self.player)
         self.sg_limits.attach_to(self.player)
+        self.sg_enemies.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
@@ -173,7 +186,7 @@ class Gameplay(State):
                 self.sg_shadow_sprites.remove(s)
         # Cool dashing animation
         if self.player.in_dash:
-            ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_BLUE)
+            ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_GREEN)
 
     def draw(self):
         self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
@@ -188,4 +201,5 @@ class Gameplay(State):
         self.sg_dust_fg.render_all(self.canvas)
         self.sg_attack_hitboxes.render_all(self.canvas)
         self.sg_limits.render_all(self.canvas)
+        self.sg_enemies.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

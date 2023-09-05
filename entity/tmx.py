@@ -28,10 +28,10 @@ class Spawner(
         self.active = active
         self.entity_spawn = entity_spawn
 
-    def spawn(self, handler_entity_spawn):
+    def spawn_entity(self, entity):
         if self.active:
-            handler_entity_spawn[self.entity_spawn].rect.x = self.rect.x
-            handler_entity_spawn[self.entity_spawn].rect.y = self.rect.y
+            entity.rect.x = self.rect.x
+            entity.rect.y = self.rect.y
 
     def update(self, dt):
         pass

@@ -13,6 +13,7 @@ class Physics2D:
         self.dashing = 0
         self.dash_cd = 100
         self.in_dash = False
+        self.dash_dist = 20
 
     def apply_gravity(self):
         self.velocity.y += self.gravity
@@ -26,9 +27,9 @@ class Physics2D:
     def dash(self, direction):
         if not self.dashing:
             if self.direction['right']:
-                self.dashing = self.dash_cd + 30
+                self.dashing = self.dash_cd + self.dash_dist
             if self.direction['left']:
-                self.dashing = -self.dash_cd - 30
+                self.dashing = -self.dash_cd - self.dash_dist
 
     def movement_horizontal(self):
         self.rect.x += self.velocity.x * self.speed
