@@ -20,6 +20,10 @@ sprites_player = {
     'up': sorted(collect_image_paths(sp_up)),
     'down': sorted(collect_image_paths(sp_down)),
 }
+sp = 'data/sprites/player/slash/'
+sprites_player_slash = {
+    'slash': sorted(collect_image_paths(sp)),
+}
 
 sp = 'data/sprites/enemy/melee/bandit/idle/'
 sprites_enemy_melee_bandit = {

@@ -13,4 +13,13 @@ class Entity:
         self.direction = {
             "left": False,
             "right": False,
+            "up": False,
+            "down": False,
         }
+    
+    def set_direction(self, new):
+        for key in self.direction:
+            if new == key:
+                self.direction[new] = True
+            else:
+                self.direction[key] = False

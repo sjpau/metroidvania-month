@@ -24,9 +24,9 @@ class Enemy(
             'right': False,
             'left': False,
         }
-        mas_h = pygame.Surface((self.image.get_width() * 2, self.image.get_height()))
-        mas_h.set_colorkey((0,0,0))
-        self.attack_melee_horizontal = Melee(self, mas_h, attack_group, horiznotal=True)
+        mas = pygame.Surface((self.image.get_width(), self.image.get_height()))
+        mas.set_colorkey((0,0,0))
+        #self.attack_melee = Melee(self, mas, attack_group)
 
     def update(self, dt):
         if self.want_move['right']:

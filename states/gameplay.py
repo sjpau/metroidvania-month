@@ -168,6 +168,11 @@ class Gameplay(State):
         self.entity_movement_collision_vertical(self.player)
         self.entity_on_trigger(self.player)
 
+        # Player logic
+        if self.player.attack_melee.attack:
+            self.player.attack_melee.hit(self.sg_enemies)
+            # TODO add "deal damage" logic
+
         self.player_box.center = self.player.rect.center
         # Dust particle generation
         dust_pos = pygame.math.Vector2(random.randint(int(self.player_box.x), int(self.player_box.x + self.player_box.width)),  
@@ -189,7 +194,8 @@ class Gameplay(State):
             ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_GREEN)
 
     def draw(self):
-        self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
+        #self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
+        self.canvas.blit(self.background, (0,0))
 
         self.sg_dust_bg.render_all(self.canvas)
         self.sg_decor_bg.render_all(self.canvas)
@@ -199,7 +205,7 @@ class Gameplay(State):
         self.sg_camera.render_all(self.canvas)
         self.sg_decor_fg.render_all(self.canvas)
         self.sg_dust_fg.render_all(self.canvas)
-        self.sg_attack_hitboxes.render_all(self.canvas)
         self.sg_limits.render_all(self.canvas)
         self.sg_enemies.render_all(self.canvas)
+        self.sg_attack_hitboxes.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))
