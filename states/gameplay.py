@@ -5,12 +5,14 @@ import debug
 from entity.player import Player
 from entity.enemy import Enemy
 from entity.shadow import ShadowSprite
+from entity.background import BackgroundLayer
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
 from entity.particles import ParticleDust
 import random
 
+from loader.assets import sprites_background_layers
 from loader.assets import sprites_enemy_melee_bandit
 from render.animation import Animation
 from loader.loader import load_sprites
@@ -36,13 +38,14 @@ class Gameplay(State):
         self.sg_enemies = Camera(self.canvas, self.scale_factor)
         self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
         self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
+        self.sg_background_layers = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
                                  self.sg_dust_fg, self.sg_dust_bg,
                                  self.sg_spawners, self.sg_attack_hitboxes,
                                  self.sg_shadow_sprites, self.sg_limits,
-                                 self.sg_enemies,]
+                                 self.sg_enemies, self.sg_background_layers,]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -91,6 +94,13 @@ class Gameplay(State):
                 max_y = y + height
         for camera in self.sg_camera_groups:
             camera.set_level_borders(min_x, min_y, max_x, max_y)
+
+        # Parallax layers
+        factor = 0.001
+        for path in sprites_background_layers:
+            factor += 0.005
+            BackgroundLayer(png(path), pygame.math.Vector2(0,0), self.sg_background_layers, self.player, factor, -5, floor=5)
+            
 
     def get_event(self, event):
         if event.type == pygame.QUIT:
@@ -149,6 +159,7 @@ class Gameplay(State):
         self.sg_shadow_sprites.update(dt)
         self.sg_limits.update(dt)
         self.sg_enemies.update(dt)
+        self.sg_background_layers.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -196,6 +207,8 @@ class Gameplay(State):
     def draw(self):
         #self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
         self.canvas.blit(self.background, (0,0))
+        for sprite in self.sg_background_layers.sprites():
+            self.canvas.blit(sprite.image, sprite.rect.topleft)
 
         self.sg_dust_bg.render_all(self.canvas)
         self.sg_decor_bg.render_all(self.canvas)

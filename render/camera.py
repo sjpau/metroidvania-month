@@ -20,7 +20,6 @@ class Camera(pygame.sprite.Group):
         self.max_x = max_x
         self.max_y = max_y
         
-    
     def attach_to(self, target):
         x = target.rect.centerx
         y = target.rect.centery
@@ -31,7 +30,7 @@ class Camera(pygame.sprite.Group):
         self.offset.x = max(self.min_x, min(unstrict_x, self.max_x - self.half_width * 2))
         self.offset.y = max(self.min_y, min(unstrict_y, self.max_y - self.half_height * 2))
         self.render_rect.topleft = self.offset
-
+    
     def render_all(self, surface):
         for sprite in self.sprites():
             if self.render_rect.colliderect(sprite.rect):
