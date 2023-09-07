@@ -1,7 +1,7 @@
 import pygame
 import pytmx
 from entity.tile import Tile
-from entity.tmx import Decoration, Spawner, Trigger, Limit
+from entity.tmx import Decoration, Spawner, Trigger, Limit, Wall
 from defs.finals import tile_size
 
 def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
@@ -10,6 +10,7 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
     tmx_triggers = []
     tmx_spawners = []
     tmx_limits = []
+    tmx_walls = []
     # Tiles
     for layer in tmx_data[lvl_name].visible_layers:
         if hasattr(layer, 'data'):
@@ -53,5 +54,11 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
                 surf.set_alpha(0)
                 l = Limit(pos, surf, obj_layers_to_groups[obj_layer_name], obj.limit_on)
                 tmx_limits.append(l)
+            if obj.type == 'Wall':
+                pos = pygame.math.Vector2(obj.x, obj.y)
+                surf = pygame.Surface((int(obj.width), int(obj.height)))
+                surf.set_alpha(0)
+                w = Wall(pos, surf, obj_layers_to_groups[obj_layer_name])
+                tmx_walls.append(w)
 
-    return tmx_tiles, tmx_decor, tmx_triggers, tmx_spawners, tmx_limits
+    return tmx_tiles, tmx_decor, tmx_triggers, tmx_spawners, tmx_limits, tmx_walls

@@ -7,10 +7,11 @@ class Tile(
         Entity, 
         Graphics2D
         ):
-    def __init__(self, position, grid_position, image, group):
+    def __init__(self, position, grid_position, image, group, climable=True):
         super().__init__(group)
         self.position = position
         self.grid_position = grid_position
+        self.climable = climable # TODO make such component
         Entity.__init__(self, image, position)
         Graphics2D.__init__(self, image, s_type='tile')
 

@@ -67,3 +67,17 @@ class Limit(
     
     def update(self, dt):
         pass
+
+class Wall(
+    pygame.sprite.Sprite,
+    Entity,
+):
+    def __init__(self, position, image, group, climable=False):
+        super().__init__(group)
+        self.position = position
+        Entity.__init__(self, image, position)
+        self.image = image
+        self.climable = climable
+
+    def update(self, dt):
+        pass

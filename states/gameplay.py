@@ -61,8 +61,9 @@ class Gameplay(State):
             'triggers': self.sg_triggers,
             'spawners': self.sg_spawners,
             'camera_limits': self.sg_limits,
+            'walls_invisible': self.sg_tiles_colliders,
         }
-        _, _, _, _, self.limits = mapper.unpack_tmx(self.tmx_maps, 'example', 
+        _, _, _, _, self.limits, _ = mapper.unpack_tmx(self.tmx_maps, 'example', 
                                     self.tmx_tile_layers_to_sg, 
                                     self.tmx_obj_layers_to_sg)
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
@@ -124,7 +125,7 @@ class Gameplay(State):
                 entity.rect.left = hit.rect.right
             if entity.velocity.x > 0:
                 entity.rect.right = hit.rect.left
-            if not entity.on_ground and entity.abilities['slide']:
+            if not entity.on_ground and entity.abilities['slide'] and hit.climable:
                 entity.velocity.y = min(entity.velocity.y, 0.3)
                 entity.jumps = 1
 
