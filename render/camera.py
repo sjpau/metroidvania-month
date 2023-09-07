@@ -1,4 +1,5 @@
 import pygame
+from defs.finals import CANVAS_HEIGHT, CANVAS_WIDTH
 
 class Camera(pygame.sprite.Group): 
     def __init__(self, canvas, scale_factor):
@@ -36,3 +37,12 @@ class Camera(pygame.sprite.Group):
             if self.render_rect.colliderect(sprite.rect):
                 offset_pos = sprite.rect.topleft - self.offset
                 surface.blit(sprite.image, offset_pos)
+    
+    def render_all_parallax(self, surface):
+        for sprite in self.sprites():
+            offset_pos = pygame.math.Vector2()
+            offset_pos.x = sprite.rect.x - self.offset.x * sprite.depth
+            offset_pos.y = sprite.rect.y - self.offset.y * sprite.depth
+            offset_pos.x = offset_pos.x % (CANVAS_WIDTH + sprite.rect.width) - sprite.rect.width
+            offset_pos.y = offset_pos.y % (CANVAS_HEIGHT + sprite.rect.height) - sprite.rect.height
+            surface.blit(sprite.image, offset_pos)

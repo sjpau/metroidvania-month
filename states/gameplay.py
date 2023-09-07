@@ -6,6 +6,7 @@ from entity.player import Player
 from entity.enemy import Enemy
 from entity.shadow import ShadowSprite
 from entity.background import BackgroundLayer
+from entity.clouds import CloudHandler
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
@@ -13,6 +14,7 @@ from entity.particles import ParticleDust
 import random
 
 from loader.assets import sprites_background_layers
+from loader.assets import sprites_clouds
 from loader.assets import sprites_enemy_melee_bandit
 from render.animation import Animation
 from loader.loader import load_sprites
@@ -39,13 +41,16 @@ class Gameplay(State):
         self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
         self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
         self.sg_background_layers = Camera(self.canvas, self.scale_factor)
+        self.sg_clouds = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
                                  self.sg_dust_fg, self.sg_dust_bg,
                                  self.sg_spawners, self.sg_attack_hitboxes,
                                  self.sg_shadow_sprites, self.sg_limits,
-                                 self.sg_enemies, self.sg_background_layers,]
+                                 self.sg_enemies, self.sg_background_layers,
+                                 self.sg_clouds,
+                                 ]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
             'background': self.sg_tiles_non_colliders,
@@ -100,6 +105,8 @@ class Gameplay(State):
         for path in sprites_background_layers:
             factor += 0.005
             BackgroundLayer(png(path), pygame.math.Vector2(0,0), self.sg_background_layers, self.player, factor, -5, floor=5)
+
+        self.cloud_handler = CloudHandler(load_sprites(sprites_clouds), self.sg_clouds)
             
 
     def get_event(self, event):
@@ -160,6 +167,7 @@ class Gameplay(State):
         self.sg_limits.update(dt)
         self.sg_enemies.update(dt)
         self.sg_background_layers.update(dt)
+        self.sg_clouds.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -174,11 +182,11 @@ class Gameplay(State):
         self.sg_shadow_sprites.attach_to(self.player)
         self.sg_limits.attach_to(self.player)
         self.sg_enemies.attach_to(self.player)
+        self.sg_clouds.attach_to(self.player)
 
         self.entity_movement_collision_horizontal(self.player)
         self.entity_movement_collision_vertical(self.player)
         self.entity_on_trigger(self.player)
-
         # Player logic
         if self.player.attack_melee.attack:
             self.player.attack_melee.hit(self.sg_enemies)
@@ -210,6 +218,7 @@ class Gameplay(State):
         for sprite in self.sg_background_layers.sprites():
             self.canvas.blit(sprite.image, sprite.rect.topleft)
 
+        self.sg_clouds.render_all_parallax(self.canvas)
         self.sg_dust_bg.render_all(self.canvas)
         self.sg_decor_bg.render_all(self.canvas)
         self.sg_tiles_non_colliders.render_all(self.canvas)

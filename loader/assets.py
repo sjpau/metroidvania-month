@@ -10,6 +10,8 @@ def collect_image_paths(directory_path):
 
 sp = 'data/png/parallax/'
 sprites_background_layers = sorted(collect_image_paths(sp))
+sp = 'data/sprites/env/clouds/'
+sprites_clouds = sorted(collect_image_paths(sp))
 
 sp = 'data/sprites/player/idle/'
 sp_r = 'data/sprites/player/run/'
