@@ -120,86 +120,19 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
         if self.handle['player input']:
             self.player.handle_input(event)
 
-    def entity_movement_collision_horizontal(self, entity, collide_groups): # TODO To separate class
-        entity.movement_horizontal() # Entity must have Physics2D component for collision
-        for group in collide_groups:
-            for hit in pygame.sprite.spritecollide(entity, group, False):
-                if entity.velocity.x < 0:
-                    entity.rect.left = hit.rect.right
-                if entity.velocity.x > 0:
-                    entity.rect.right = hit.rect.left
-                if not entity.on_ground and entity.abilities['slide'] and hit.climable:
-                    entity.velocity.y = min(entity.velocity.y, 0.3)
-                    entity.jumps = 1
-
-    def entity_movement_collision_vertical(self, entity, collide_groups):
-        entity.movement_vertical() # Entity must have Physics2D component for collision
-        for group in collide_groups:
-            for hit in pygame.sprite.spritecollide(entity, group, False):
-                if entity.velocity.y > 0:
-                    entity.rect.bottom = hit.rect.top
-                    entity.velocity.y = 0
-                    if entity.abilities['hop']:
-                        entity.jumps = 2
-                    else:
-                        entity.jumps = 1
-                if entity.velocity.y < 0:
-                    entity.rect.top = hit.rect.bottom 
-                    entity.velocity.y = 0
-
-    def entity_on_trigger(self, entity, trigger_groups):
-        for group in trigger_groups:
-            for hit in pygame.sprite.spritecollide(entity, group, False):
-                if hit.action == "teleport" and hit.type == "sender":
-                    find_id = hit.desired_receiver_id
-                    for trigger in self.sg_triggers:
-                        if int(find_id) == int(trigger.t_id):
-                            entity.rect.topleft = trigger.rect.topleft
-                            break
-
-
     def update(self, dt):
-        self.sg_camera.update(dt)
-        self.sg_decor_bg.update(dt)
-        self.sg_decor_fg.update(dt)
-        self.sg_triggers.update(dt)
-        self.sg_spawners.update(dt)
-        self.sg_tiles_colliders.update(dt)
-        self.sg_tiles_non_colliders.update(dt)
-        self.sg_dust_bg.update(dt)
-        self.sg_dust_fg.update(dt)
-        self.sg_attack_hitboxes.update(dt)
-        self.sg_shadow_sprites.update(dt)
-        self.sg_limits.update(dt)
-        self.sg_enemies.update(dt)
-        self.sg_background_layers.update(dt)
-        self.sg_clouds.update(dt)
-        self.sg_walls_enemy.update(dt)
-
-        self.sg_camera.attach_to(self.player)
-        self.sg_tiles_colliders.attach_to(self.player)
-        self.sg_tiles_non_colliders.attach_to(self.player)
-        self.sg_decor_bg.attach_to(self.player)
-        self.sg_decor_fg.attach_to(self.player)
-        self.sg_triggers.attach_to(self.player)
-        self.sg_spawners.attach_to(self.player)
-        self.sg_dust_bg.attach_to(self.player)
-        self.sg_dust_fg.attach_to(self.player)
-        self.sg_attack_hitboxes.attach_to(self.player)
-        self.sg_shadow_sprites.attach_to(self.player)
-        self.sg_limits.attach_to(self.player)
-        self.sg_enemies.attach_to(self.player)
-        self.sg_clouds.attach_to(self.player)
-        self.sg_walls_enemy.attach_to(self.player)
-
-        self.entity_movement_collision_horizontal(self.player, [self.sg_tiles_colliders])
-        self.entity_movement_collision_vertical(self.player, [self.sg_tiles_colliders])
+        for group in self.sg_camera_groups:
+            group.update(dt)
+            group.attach_to(self.player)
+        
+        self.player.entity_movement_collision_horizontal([self.sg_tiles_colliders])
+        self.player.entity_movement_collision_vertical([self.sg_tiles_colliders])
 
         for enemy in self.sg_enemies:
-            self.entity_movement_collision_horizontal(enemy, [self.sg_tiles_colliders, self.sg_walls_enemy])
-            self.entity_movement_collision_vertical(enemy, [self.sg_tiles_colliders, self.sg_walls_enemy])
+            enemy.entity_movement_collision_horizontal([self.sg_tiles_colliders, self.sg_walls_enemy])
+            enemy.entity_movement_collision_vertical([self.sg_tiles_colliders, self.sg_walls_enemy])
 
-        self.entity_on_trigger(self.player, [self.sg_triggers])
+        self.player.entity_on_trigger([self.sg_triggers])
         # Player logic
         if self.player.attack_melee.attack:
             self.player.attack_melee.hit(self.sg_enemies)
