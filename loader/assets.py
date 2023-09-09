@@ -18,16 +18,20 @@ sp_r = 'data/sprites/player/run/'
 sp_d = 'data/sprites/player/dash/'
 sp_up = 'data/sprites/player/up/'
 sp_down = 'data/sprites/player/down/'
+sp_ah = 'data/sprites/player/attack_hor/'
 sprites_player = {
     'idle': sorted(collect_image_paths(sp)),
     'run': sorted(collect_image_paths(sp_r)), # TODO better var naming
     'dash': sorted(collect_image_paths(sp_d)),
     'up': sorted(collect_image_paths(sp_up)),
     'down': sorted(collect_image_paths(sp_down)),
+    'attack_hor': sorted(collect_image_paths(sp_ah)),
 }
 sp = 'data/sprites/player/slash/'
+sp_v = 'data/sprites/player/slash_ver/'
 sprites_player_slash = {
     'slash': sorted(collect_image_paths(sp)),
+    'slash_ver': sorted(collect_image_paths(sp_v)),
 }
 
 sp = 'data/sprites/enemy/melee/bandit/idle/'

@@ -3,7 +3,7 @@ from .state import State
 import defs.finals as finals
 import debug 
 from entity.player import Player
-from entity.enemy import Enemy
+from entity.enemy import MeleeBandit
 from entity.shadow import ShadowSprite
 from entity.background import BackgroundLayer
 from entity.clouds import CloudHandler
@@ -19,7 +19,7 @@ from loader.assets import sprites_enemy_melee_bandit
 from render.animation import Animation
 from loader.loader import load_sprites
 
-class Gameplay(State):
+class Gameplay(State): # TODO Separate gameplay class and make classes for each level.
     def __init__(self, tmx_maps):
         super(Gameplay, self).__init__()
         self.handle = {
@@ -42,6 +42,7 @@ class Gameplay(State):
         self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
         self.sg_background_layers = Camera(self.canvas, self.scale_factor)
         self.sg_clouds = Camera(self.canvas, self.scale_factor)
+        self.sg_walls_enemy = Camera(self.canvas, self.scale_factor)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
@@ -49,7 +50,7 @@ class Gameplay(State):
                                  self.sg_spawners, self.sg_attack_hitboxes,
                                  self.sg_shadow_sprites, self.sg_limits,
                                  self.sg_enemies, self.sg_background_layers,
-                                 self.sg_clouds,
+                                 self.sg_clouds, self.sg_walls_enemy,
                                  ]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
@@ -62,8 +63,9 @@ class Gameplay(State):
             'spawners': self.sg_spawners,
             'camera_limits': self.sg_limits,
             'walls_invisible': self.sg_tiles_colliders,
+            'walls_invisible_enemy': self.sg_walls_enemy,
         }
-        _, _, _, _, self.limits, _ = mapper.unpack_tmx(self.tmx_maps, 'example', 
+        _, _, _, _, self.limits, _, _ = mapper.unpack_tmx(self.tmx_maps, 'example', 
                                     self.tmx_tile_layers_to_sg, 
                                     self.tmx_obj_layers_to_sg)
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
@@ -77,7 +79,7 @@ class Gameplay(State):
                 animations_enemy_melee_bandit = {
                     'idle': Animation(load_sprites(sprites_enemy_melee_bandit['idle']), 300),
                 }
-                e = Enemy(pygame.math.Vector2(0,0), self.sg_enemies, (16, 16), pygame.Surface((16,16)), animations=animations_enemy_melee_bandit, attack_group=self.sg_attack_hitboxes)
+                e = MeleeBandit(pygame.math.Vector2(0,0), self.sg_enemies, (16, 16), pygame.Surface((16,16)), animations=animations_enemy_melee_bandit, attack_group=self.sg_attack_hitboxes)
                 spawner.spawn_entity(e)
 
         self.player_shadow_cd = 40
@@ -118,39 +120,42 @@ class Gameplay(State):
         if self.handle['player input']:
             self.player.handle_input(event)
 
-    def entity_movement_collision_horizontal(self, entity): # Unfortunately has to be here 'cuz of sgs
+    def entity_movement_collision_horizontal(self, entity, collide_groups): # TODO To separate class
         entity.movement_horizontal() # Entity must have Physics2D component for collision
-        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
-            if entity.velocity.x < 0:
-                entity.rect.left = hit.rect.right
-            if entity.velocity.x > 0:
-                entity.rect.right = hit.rect.left
-            if not entity.on_ground and entity.abilities['slide'] and hit.climable:
-                entity.velocity.y = min(entity.velocity.y, 0.3)
-                entity.jumps = 1
-
-    def entity_movement_collision_vertical(self, entity):
-        entity.movement_vertical() # Entity must have Physics2D component for collision
-        for hit in pygame.sprite.spritecollide(entity, self.sg_tiles_colliders, False):
-            if entity.velocity.y > 0:
-                entity.rect.bottom = hit.rect.top
-                entity.velocity.y = 0
-                if entity.abilities['hop']:
-                    entity.jumps = 2
-                else:
+        for group in collide_groups:
+            for hit in pygame.sprite.spritecollide(entity, group, False):
+                if entity.velocity.x < 0:
+                    entity.rect.left = hit.rect.right
+                if entity.velocity.x > 0:
+                    entity.rect.right = hit.rect.left
+                if not entity.on_ground and entity.abilities['slide'] and hit.climable:
+                    entity.velocity.y = min(entity.velocity.y, 0.3)
                     entity.jumps = 1
-            if entity.velocity.y < 0:
-                entity.rect.top = hit.rect.bottom 
-                entity.velocity.y = 0
 
-    def entity_on_trigger(self, entity):
-        for hit in pygame.sprite.spritecollide(entity, self.sg_triggers, False):
-            if hit.action == "teleport" and hit.type == "sender":
-                find_id = hit.desired_receiver_id
-                for trigger in self.sg_triggers:
-                    if int(find_id) == int(trigger.t_id):
-                        entity.rect.topleft = trigger.rect.topleft
-                        break
+    def entity_movement_collision_vertical(self, entity, collide_groups):
+        entity.movement_vertical() # Entity must have Physics2D component for collision
+        for group in collide_groups:
+            for hit in pygame.sprite.spritecollide(entity, group, False):
+                if entity.velocity.y > 0:
+                    entity.rect.bottom = hit.rect.top
+                    entity.velocity.y = 0
+                    if entity.abilities['hop']:
+                        entity.jumps = 2
+                    else:
+                        entity.jumps = 1
+                if entity.velocity.y < 0:
+                    entity.rect.top = hit.rect.bottom 
+                    entity.velocity.y = 0
+
+    def entity_on_trigger(self, entity, trigger_groups):
+        for group in trigger_groups:
+            for hit in pygame.sprite.spritecollide(entity, group, False):
+                if hit.action == "teleport" and hit.type == "sender":
+                    find_id = hit.desired_receiver_id
+                    for trigger in self.sg_triggers:
+                        if int(find_id) == int(trigger.t_id):
+                            entity.rect.topleft = trigger.rect.topleft
+                            break
 
 
     def update(self, dt):
@@ -169,6 +174,7 @@ class Gameplay(State):
         self.sg_enemies.update(dt)
         self.sg_background_layers.update(dt)
         self.sg_clouds.update(dt)
+        self.sg_walls_enemy.update(dt)
 
         self.sg_camera.attach_to(self.player)
         self.sg_tiles_colliders.attach_to(self.player)
@@ -184,10 +190,16 @@ class Gameplay(State):
         self.sg_limits.attach_to(self.player)
         self.sg_enemies.attach_to(self.player)
         self.sg_clouds.attach_to(self.player)
+        self.sg_walls_enemy.attach_to(self.player)
 
-        self.entity_movement_collision_horizontal(self.player)
-        self.entity_movement_collision_vertical(self.player)
-        self.entity_on_trigger(self.player)
+        self.entity_movement_collision_horizontal(self.player, [self.sg_tiles_colliders])
+        self.entity_movement_collision_vertical(self.player, [self.sg_tiles_colliders])
+
+        for enemy in self.sg_enemies:
+            self.entity_movement_collision_horizontal(enemy, [self.sg_tiles_colliders, self.sg_walls_enemy])
+            self.entity_movement_collision_vertical(enemy, [self.sg_tiles_colliders, self.sg_walls_enemy])
+
+        self.entity_on_trigger(self.player, [self.sg_triggers])
         # Player logic
         if self.player.attack_melee.attack:
             self.player.attack_melee.hit(self.sg_enemies)
@@ -211,7 +223,7 @@ class Gameplay(State):
                 self.sg_shadow_sprites.remove(s)
         # Cool dashing animation
         if self.player.in_dash:
-            ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_GREEN)
+            ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_BLUE)
 
     def draw(self):
         #self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
@@ -231,4 +243,5 @@ class Gameplay(State):
         self.sg_limits.render_all(self.canvas)
         self.sg_enemies.render_all(self.canvas)
         self.sg_attack_hitboxes.render_all(self.canvas)
+        self.sg_walls_enemy.render_all(self.canvas)
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

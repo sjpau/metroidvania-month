@@ -16,6 +16,7 @@ class Entity:
             "up": False,
             "down": False,
         }
+        self.want_be_flipped_ver = False
     
     def set_direction(self, new):
         for key in self.direction:

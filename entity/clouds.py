@@ -24,7 +24,7 @@ class CloudHandler:
         self.images = images
         self.group = group
         for i in range(count):
-            self.clouds.append(Cloud(pygame.math.Vector2(random.random() * 320, random.random() * 180), 
+            self.clouds.append(Cloud(pygame.math.Vector2(random.random() * 99999, random.random() * 99999), 
                                     random.choice(self.images), self.group, random.random() * 0.5 + 0.02 ,speed=random.random() * 0.05 + 0.01))
         self.clouds.sort(key=lambda x: x.depth)
 

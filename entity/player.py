@@ -23,6 +23,7 @@ class Player(
             'dash': Animation(loader.load_sprites(assets.sprites_player['dash']), 40),
             'up': Animation(loader.load_sprites(assets.sprites_player['up']), 100),
             'down': Animation(loader.load_sprites(assets.sprites_player['down']), 100),
+            'attack_hor': Animation(loader.load_sprites(assets.sprites_player['attack_hor']), 100),
         }
         Entity.__init__(self, image, position)
         Graphics2D.__init__(self, image, animations=animations)
@@ -41,10 +42,11 @@ class Player(
         self.keys_attack = {pygame.K_q}
         self.keys_dash = {pygame.K_LSHIFT}
 
-        mas = pygame.Surface((self.image.get_width(), self.image.get_height()))
+        mas = pygame.Surface((self.image.get_width()*2, self.image.get_height()))
         mas.set_colorkey((0,0,0))
         attack_anims = {
-            'slash': Animation(loader.load_sprites(assets.sprites_player_slash['slash']), 50, play_once=True)
+            'slash': Animation(loader.load_sprites(assets.sprites_player_slash['slash']), 50, play_once=True),
+            'slash_ver': Animation(loader.load_sprites(assets.sprites_player_slash['slash_ver']), 50, play_once=True),
         }
         self.attack_melee = Melee(self, mas, attack_group, animations=attack_anims)
 
@@ -72,10 +74,13 @@ class Player(
             elif k in self.keys_left:
                 self.want_move['left'] = False
             elif k in self.keys_attack:
-                self.attack_melee.attack = True
+                if not self.attack_melee.cd_counter:
+                    self.attack_melee.attack = True
 
 
     def update(self, dt):
+        if pygame.mouse.get_pressed()[0] and not self.attack_melee.cd_counter:
+            self.attack_melee.attack = True
         if self.want_move['right']:
             self.velocity.x = 1
         if self.want_move['left']:
@@ -94,4 +99,6 @@ class Player(
             self.set_animation('dash')
         if self.velocity.x == 0 and self.velocity.y == 0:
             self.set_animation('idle')
+        if self.attack_melee.attack:
+            self.set_animation('attack_hor')
         self.graphics_update_animation(dt)

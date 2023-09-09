@@ -19,5 +19,11 @@ class Graphics2D:
                 self.image, _ = self.current_animation.get_current_sprite_and_mask()
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.mask = pygame.mask.from_surface(self.image)
+            elif self.direction['right']:
+                self.image, self.mask = self.current_animation.get_current_sprite_and_mask()
+            elif self.direction['up'] and self.want_be_flipped_ver:
+                self.image, _ = self.current_animation.get_current_sprite_and_mask()
+                self.image = pygame.transform.flip(self.image, True, True)
+                self.mask = pygame.mask.from_surface(self.image)
             else:
                 self.image, self.mask = self.current_animation.get_current_sprite_and_mask()
