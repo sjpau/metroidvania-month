@@ -7,7 +7,7 @@ class Melee(
     Entity,
     Graphics2D,
 ):
-    def __init__(self, parent, image, group, animations={}, cooldown=30):
+    def __init__(self, parent, image, group, animations={}, cooldown=10):
         super().__init__(group)
         self.parent = parent
         self.position = pygame.math.Vector2(parent.rect.topleft)
@@ -36,9 +36,11 @@ class Melee(
 
     def hit(self, sg_colliders):
         hits = pygame.sprite.spritecollide(self, sg_colliders, False)
+        sprites_hit = []
         for h in hits:
             if pygame.sprite.collide_mask(self, h):
-                print('hit')
+                sprites_hit.append(h)
+        return sprites_hit
 
     def update(self, dt):
         # TODO add attack cd

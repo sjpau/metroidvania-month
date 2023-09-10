@@ -10,9 +10,9 @@ from entity.clouds import CloudHandler
 from render.camera import Camera
 import loader.mapper as mapper
 from loader.loader import png
-from entity.particles import ParticleDust
+from entity.particles import ParticleDust, ParticleSpark
 import random
-
+from math import pi
 from loader.assets import sprites_background_layers
 from loader.assets import sprites_clouds
 from loader.assets import sprites_enemy_melee_bandit
@@ -72,6 +72,7 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
                             pygame.surface.Surface((finals.tile_size, finals.tile_size)), attack_group=self.sg_attack_hitboxes)
         self.player_box = pygame.FRect(self.canvas.get_rect())
         self.particles_dust = []
+        self.particles_sparks = []
         for spawner in self.sg_spawners:
             if spawner.entity_spawn == 'player':
                 spawner.spawn_entity(self.player)
@@ -124,7 +125,12 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
         for group in self.sg_camera_groups:
             group.update(dt)
             group.attach_to(self.player)
-        
+        for spark in self.particles_sparks:
+            spark.update(dt)
+        for spark in self.particles_sparks:
+            if spark.kill:
+                self.particles_sparks.remove(spark)
+
         self.player.entity_movement_collision_horizontal([self.sg_tiles_colliders])
         self.player.entity_movement_collision_vertical([self.sg_tiles_colliders])
 
@@ -135,8 +141,10 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
         self.player.entity_on_trigger([self.sg_triggers])
         # Player logic
         if self.player.attack_melee.attack:
-            self.player.attack_melee.hit(self.sg_enemies)
-            # TODO add "deal damage" logic
+            hits = self.player.attack_melee.hit(self.sg_enemies)
+            for h in hits:
+                dir_key = [key for key, value in self.player.attack_direction.items() if value]
+                self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(h.rect.center), finals.COLOR_HERO_BLUE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
 
         self.player_box.center = self.player.rect.center
         # Dust particle generation
@@ -157,6 +165,8 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
         # Cool dashing animation
         if self.player.in_dash:
             ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_BLUE)
+            dir_key = [key for key, value in self.player.direction.items() if value]
+            self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(self.player.rect.center), finals.COLOR_HERO_BLUE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
 
     def draw(self):
         #self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
@@ -177,4 +187,8 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
         self.sg_enemies.render_all(self.canvas)
         self.sg_attack_hitboxes.render_all(self.canvas)
         self.sg_walls_enemy.render_all(self.canvas)
+
+        for spark in self.particles_sparks:
+            spark.draw(self.canvas, self.sg_camera)        
+
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

@@ -16,6 +16,12 @@ class Entity:
             "up": False,
             "down": False,
         }
+        self.direction_pi = {
+            "left": 1,
+            "right": 0,
+            "up": 1.5,
+            "down": 0.5,
+        }
         self.want_be_flipped_ver = False
     
     def set_direction(self, new):

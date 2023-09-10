@@ -59,10 +59,10 @@ class Player(
             elif k in self.keys_left:
                 self.want_move['left'] = True
                 self.set_attack_direction('left')
-            elif k in self.keys_down:
-                self.set_attack_direction('down')
-            elif k in self.keys_up:
-                self.set_attack_direction('up')
+            #elif k in self.keys_down:
+            #    self.set_attack_direction('down')
+            #elif k in self.keys_up:
+            #    self.set_attack_direction('up')
             elif k in self.keys_dash:
                 self.dash(self.attack_direction)
         if event.type == pygame.KEYUP:

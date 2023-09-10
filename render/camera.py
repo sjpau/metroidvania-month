@@ -32,17 +32,17 @@ class Camera(pygame.sprite.Group):
         self.offset.y = max(self.min_y, min(unstrict_y, self.max_y - self.half_height * 2))
         self.render_rect.topleft = self.offset
     
-    def render_all(self, surface):
+    def render_all(self, surface, special_flags=0):
         for sprite in self.sprites():
             if self.render_rect.colliderect(sprite.rect):
                 offset_pos = sprite.rect.topleft - self.offset
-                surface.blit(sprite.image, offset_pos)
+                surface.blit(sprite.image, offset_pos, special_flags=special_flags)
     
-    def render_all_parallax(self, surface):
+    def render_all_parallax(self, surface, special_flags=0):
         for sprite in self.sprites():
             offset_pos = pygame.math.Vector2()
             offset_pos.x = sprite.rect.x - self.offset.x * sprite.depth
             offset_pos.y = sprite.rect.y - self.offset.y * sprite.depth
             offset_pos.x = offset_pos.x % (CANVAS_WIDTH + sprite.rect.width) - sprite.rect.width
             offset_pos.y = offset_pos.y % (CANVAS_HEIGHT + sprite.rect.height) - sprite.rect.height
-            surface.blit(sprite.image, offset_pos)
+            surface.blit(sprite.image, offset_pos, special_flags=special_flags)
