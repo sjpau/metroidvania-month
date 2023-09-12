@@ -1,5 +1,5 @@
 import pygame
-from .state import State
+from states.state import State
 import defs.finals as finals
 import debug 
 from entity.player import Player
@@ -18,31 +18,30 @@ from render.animation import Animation
 from loader.loader import load_sprites
 from utils.utils import bool_dict_set_true
 
-class Gameplay(State): # TODO Separate gameplay class and make classes for each level.
-    def __init__(self, tmx_maps):
-        super(Gameplay, self).__init__()
-        self.handle = {
-            'player input': True,
-        }
+
+class DesertLevel(State):
+    def __init__(self, tmx_maps, map_key):
+        super().__init__()
         self.tmx_maps = tmx_maps
+        self.map_key = map_key
         self.background = png(finals.PATH_BACKGROUND)
-        self.sg_camera = Camera(self.canvas, self.scale_factor)
-        self.sg_tiles_colliders = Camera(self.canvas, self.scale_factor)
-        self.sg_tiles_spikes = Camera(self.canvas, self.scale_factor)
-        self.sg_tiles_non_colliders = Camera(self.canvas, self.scale_factor)
-        self.sg_decor_fg = Camera(self.canvas, self.scale_factor)
-        self.sg_decor_bg = Camera(self.canvas, self.scale_factor)
-        self.sg_dust_fg = Camera(self.canvas, self.scale_factor)
-        self.sg_dust_bg = Camera(self.canvas, self.scale_factor)
-        self.sg_triggers = Camera(self.canvas, self.scale_factor)
-        self.sg_spawners = Camera(self.canvas, self.scale_factor)
-        self.sg_limits = Camera(self.canvas, self.scale_factor)
-        self.sg_enemies = Camera(self.canvas, self.scale_factor)
-        self.sg_attack_hitboxes = Camera(self.canvas, self.scale_factor)
-        self.sg_shadow_sprites = Camera(self.canvas, self.scale_factor)
-        self.sg_background_layers = Camera(self.canvas, self.scale_factor)
-        self.sg_clouds = Camera(self.canvas, self.scale_factor)
-        self.sg_walls_enemy = Camera(self.canvas, self.scale_factor)
+        self.sg_camera = Camera(self.canvas)
+        self.sg_tiles_colliders = Camera(self.canvas)
+        self.sg_tiles_spikes = Camera(self.canvas)
+        self.sg_tiles_non_colliders = Camera(self.canvas)
+        self.sg_decor_fg = Camera(self.canvas)
+        self.sg_decor_bg = Camera(self.canvas)
+        self.sg_dust_fg = Camera(self.canvas)
+        self.sg_dust_bg = Camera(self.canvas)
+        self.sg_triggers = Camera(self.canvas)
+        self.sg_spawners = Camera(self.canvas)
+        self.sg_limits = Camera(self.canvas)
+        self.sg_enemies = Camera(self.canvas)
+        self.sg_attack_hitboxes = Camera(self.canvas)
+        self.sg_shadow_sprites = Camera(self.canvas)
+        self.sg_background_layers = Camera(self.canvas)
+        self.sg_clouds = Camera(self.canvas)
+        self.sg_walls_enemy = Camera(self.canvas)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
@@ -67,14 +66,41 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
             'walls_invisible': self.sg_tiles_colliders,
             'walls_invisible_enemy': self.sg_walls_enemy,
         }
-        _, _, _, _, self.limits, _, _ = mapper.unpack_tmx(self.tmx_maps, 'example', 
-                                    self.tmx_tile_layers_to_sg, 
-                                    self.tmx_obj_layers_to_sg)
-        self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
-                            pygame.surface.Surface((finals.tile_size, finals.tile_size)), attack_group=self.sg_attack_hitboxes)
-        self.player_box = pygame.FRect(self.canvas.get_rect())
+        self.player_shadow_cd = 40
+        self.player_shadow_count = 0
+        self.player = None
         self.particles_dust = []
         self.particles_sparks = []
+        self.player_box = None
+        self.player_persistent_data = None
+        self.desired_next_state = ""
+
+    def on_exit(self):
+        self.player_persistent_data = self.player.abilities
+
+    def preload(self, player_persistent_data=None):
+        # Clean up
+        self.player_shadow_cd = 40
+        self.player_shadow_count = 0
+        self.player = None
+        self.particles_dust = []
+        self.particles_sparks = []
+        self.player_box = None
+        self.player_persistent_data = None
+        self.desired_next_state = ""
+        for group in self.sg_camera_groups:
+            group.empty()
+        self.desired_next_state = ""
+        # Load map data
+        _, _, _, _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, self.map_key, 
+                                    self.tmx_tile_layers_to_sg, 
+                                    self.tmx_obj_layers_to_sg)
+        # Managing entities
+        self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
+                            pygame.surface.Surface((finals.tile_size, finals.tile_size)), attack_group=self.sg_attack_hitboxes)
+        if player_persistent_data is not None:
+            self.player.abilities = player_persistent_data
+        self.player_box = pygame.FRect(self.canvas.get_rect())
         for spawner in self.sg_spawners:
             if spawner.entity_spawn == 'player':
                 spawner.spawn_entity(self.player)
@@ -92,15 +118,13 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
                 e = MeleeBandit(pygame.math.Vector2(0,0), self.sg_enemies, (16, 16), pygame.Surface((16,16)), animations=animations_enemy_melee_bandit, attack_group=self.sg_attack_hitboxes, melee_anims=enemy_mas_anims)
                 spawner.spawn_entity(e)
 
-        self.player_shadow_cd = 40
-        self.player_shadow_count = 0
 
         # Calculate level borders
         min_x = None
         max_x = None
         min_y = None
         max_y = None
-        for tile in self.limits:
+        for tile in self.sg_limits:
             x, y, width, height = tile.rect
             if min_x is None or x < min_x:
                 min_x = x
@@ -120,7 +144,7 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
             BackgroundLayer(png(path), pygame.math.Vector2(0,0), self.sg_background_layers, self.player, factor, -5, floor=5)
 
         self.cloud_handler = CloudHandler(load_sprites(sprites_clouds), self.sg_clouds)
-            
+        self.ready = True
 
     def get_event(self, event):
         if event.type == pygame.QUIT:
@@ -129,6 +153,9 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
             self.on_videoresize()
         if self.handle['player input']:
             self.player.handle_input(event)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.handle['level update'] = not self.handle['level update']
 
     def update(self, dt):
         for group in self.sg_camera_groups:
@@ -156,8 +183,15 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
                 else:
                     bool_dict_set_true(enemy.direction, 'right')
                 enemy.action_prepare = True
-
-        self.player.entity_on_trigger([self.sg_triggers])
+        for hit in pygame.sprite.spritecollide(self.player, self.sg_triggers, False):
+            if hit.action == 'teleport' and hit.type == 'sender':
+                find_id = hit.desired_receiver_id
+                for trigger in self.sg_triggers:
+                    if int(find_id) == int(trigger.t_id):
+                        self.player.rect.topleft = trigger.rect.topleft
+                        break
+            if hit.action == 'transist':
+                self.desired_next_state = hit.action_receiver
         # Player logic
         if self.player.attack_melee.attack:
             hits = self.player.attack_melee.hit(self.sg_enemies)
@@ -191,9 +225,11 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
             ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_BLUE)
             dir_key = [key for key, value in self.player.direction.items() if value]
             self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(self.player.rect.center), finals.COLOR_HERO_BLUE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
+        
+        if self.desired_next_state != '':
+            self.done = True
 
     def draw(self):
-        #self.canvas.blit(pygame.transform.scale(self.background, (self.canvas.get_size())), (0,0))
         self.canvas.blit(self.background, (0,0))
         for sprite in self.sg_background_layers.sprites():
             self.canvas.blit(sprite.image, sprite.rect.topleft)
@@ -215,5 +251,4 @@ class Gameplay(State): # TODO Separate gameplay class and make classes for each 
 
         for spark in self.particles_sparks:
             spark.draw(self.canvas, self.sg_camera)        
-
         self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))

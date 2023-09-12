@@ -18,19 +18,23 @@ class State(object):
         self.surface = pygame.display.get_surface()
         self.s_width = self.surface.get_width()
         self.s_height = self.surface.get_height()
-        self.scale_factor = min(self.s_width//finals.CANVAS_WIDTH, self.s_height//finals.CANVAS_HEIGHT)
         self.canvas_rect = self.canvas.get_rect(center = (self.s_width//2, self.s_height//2))
+        self.handle = {
+            'player input': True,
+            'level update': True,
+            'level draw': True,
+        }
+        self.ready = False
 
     def on_videoresize_child(self):
         pass
 
     def on_videoresize(self):
+        print('called videoresize')
         self.surface = pygame.display.get_surface()
         self.s_width = self.surface.get_width()
         self.s_height = self.surface.get_height()
-        self.scale_factor = min(self.s_width//finals.CANVAS_WIDTH, self.s_height//finals.CANVAS_HEIGHT)
-        #self.canvas = pygame.transform.scale(self.canvas, (finals.CANVAS_WIDTH*self.scale_factor, finals.CANVAS_HEIGHT*self.scale_factor))
-        #self.canvas_rect = self.canvas.get_rect(center = (self.s_width//2, self.s_height//2))
+        print(self.surface.get_size())
 
     def startup(self, persistent):
         self.persist = persistent
@@ -46,6 +50,12 @@ class State(object):
             self.start_playing_music = False
 
     def on_enter(self):
+        pass
+
+    def on_exit(self):
+        pass
+
+    def preload(self):
         pass
 
     def update(self, dt):

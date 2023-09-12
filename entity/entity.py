@@ -50,13 +50,3 @@ class Entity:
                 if self.velocity.y < 0:
                     self.rect.top = hit.rect.bottom 
                     self.velocity.y = 0
-
-    def entity_on_trigger(self, trigger_groups):
-        for group in trigger_groups:
-            for hit in pygame.sprite.spritecollide(self, group, False):
-                if hit.action == "teleport" and hit.type == "sender":
-                    find_id = hit.desired_receiver_id
-                    for trigger in group:
-                        if int(find_id) == int(trigger.t_id):
-                            self.rect.topleft = trigger.rect.topleft
-                            break

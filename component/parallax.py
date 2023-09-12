@@ -9,4 +9,6 @@ class Parallax:
 
     def attach_parallax(self, target):
         self.offset = (self.rect.y + target.rect.y) * self.factor
-        self.rect.y = min(self.offset, self.floor)
+        self.offset = min(self.offset, self.floor)
+        self.offset = max(self.offset, self.ceil)
+        self.rect.y = self.offset

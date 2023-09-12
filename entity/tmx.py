@@ -40,7 +40,7 @@ class Trigger(
     pygame.sprite.Sprite,
     Entity,
 ):
-    def __init__(self, position, image, group, t_id=0, t_type="", active=True, desired_receiver_id=0, action=""):
+    def __init__(self, position, image, group, t_id=0, t_type="", active=True, desired_receiver_id=0, action="", action_receiver=""):
         super().__init__(group)
         self.position = position
         Entity.__init__(self, image, position)
@@ -50,6 +50,7 @@ class Trigger(
         self.type = t_type
         self.t_id = t_id
         self.desired_receiver_id = desired_receiver_id
+        self.action_receiver = action_receiver
 
     def update(self, dt):
         pass

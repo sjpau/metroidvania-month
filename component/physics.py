@@ -63,4 +63,3 @@ class Physics2D:
             self.velocity.x = max(self.velocity.x - 0.1, 0)
         else:
             self.velocity.x = min(self.velocity.x + 0.1, 0)
-            

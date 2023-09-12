@@ -41,6 +41,15 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
                     desired_receiver_id = ""
                 t = Trigger(pos, surf, obj_layers_to_groups[obj_layer_name], t_type=t_type, t_id=t_id, desired_receiver_id=desired_receiver_id, action=action)
                 tmx_triggers.append(t)
+            if obj.type == 'Transitioner':
+                pos = pygame.math.Vector2(obj.x, obj.y)
+                surf = pygame.Surface((int(obj.width), int(obj.height)))
+                surf.set_alpha(0)
+                t_id = obj.id
+                t_type = obj.t_type
+                action = obj.action
+                transition_to = obj.transition_to_class
+                t = Trigger(pos, surf, obj_layers_to_groups[obj_layer_name], t_type=t_type, t_id=t_id, desired_receiver_id=desired_receiver_id, action=action, action_receiver=transition_to)
             if obj.type == 'Spawner':
                 pos = pygame.math.Vector2(obj.x, obj.y)
                 surf = pygame.Surface((int(obj.width), int(obj.height)))

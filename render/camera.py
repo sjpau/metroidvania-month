@@ -2,9 +2,8 @@ import pygame
 from defs.finals import CANVAS_HEIGHT, CANVAS_WIDTH
 
 class Camera(pygame.sprite.Group): 
-    def __init__(self, canvas, scale_factor):
+    def __init__(self, canvas):
         super().__init__()
-        self.scale_factor = scale_factor
         self.half_width = canvas.get_width() / 2
         self.half_height = canvas.get_height() / 2
         self.offset = pygame.math.Vector2(self.half_width, self.half_height)

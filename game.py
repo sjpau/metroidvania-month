@@ -1,5 +1,6 @@
 import pygame
 import debug
+from defs.lvl import desert_areas
 
 
 class Game(object):
@@ -16,23 +17,30 @@ class Game(object):
             self.state.get_event(event)
 
     def flip_state(self, state):
-        self.state.done = False
-        persistent = self.state.persist
-        self.state = state
-        self.state.startup(persistent)
-        self.state.on_enter()
+        self.state.on_exit()
+        state.preload(player_persistent_data=self.state.player_persistent_data)
+        if state.ready:
+            self.state.done = False
+            persistent = self.state.persist
+            self.state = state
+            self.state.startup(persistent)
+            self.state.on_enter()
 
     def update(self, dt):
         self.desired_next_state = self.state.desired_next_state
         if self.state.quit:
             self.done = True
         elif self.state.done:
-            self.flip_state(self.desired_next_state)
+            self.state.done = False
+            self.flip_state(desert_areas[self.desired_next_state])
             self.switch_music = True
-        self.state.update(dt)
+        if self.state.handle['level update']:
+            print('yp')
+            self.state.update(dt)
 
     def draw(self):
-        self.state.draw()
+        if self.state.handle['level draw']:
+            self.state.draw()
         if debug.status:
             debug.display(int(self.clock.get_fps()))
 
