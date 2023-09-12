@@ -23,13 +23,6 @@ class Entity:
             "down": 0.5,
         }
         self.want_be_flipped_ver = False
-    
-    def set_direction(self, new):
-        for key in self.direction:
-            if new == key:
-                self.direction[new] = True
-            else:
-                self.direction[key] = False
 
     def entity_movement_collision_horizontal(self, collide_groups):
         self.movement_horizontal() # Entity must have Physics2D component for collision

@@ -9,3 +9,10 @@ def circle_surface(radius, color):
         return surf
     else:
         return None
+
+def bool_dict_set_true(dic, key_to_true):
+        for key in dic:
+            if key_to_true == key:
+                dic[key_to_true] = True
+            else:
+                dic[key] = False

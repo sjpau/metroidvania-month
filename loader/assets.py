@@ -35,8 +35,20 @@ sprites_player_slash = {
 }
 
 sp = 'data/sprites/enemy/melee/bandit/idle/'
+sp_w = 'data/sprites/enemy/melee/bandit/walk/'
+sp_r = 'data/sprites/enemy/melee/bandit/defend/'
+sp_d = 'data/sprites/enemy/melee/bandit/prepare/'
+sp_a = 'data/sprites/enemy/melee/bandit/attack/'
 sprites_enemy_melee_bandit = {
     'idle': sorted(collect_image_paths(sp)),
+    'walk': sorted(collect_image_paths(sp_w)),
+    'defend': sorted(collect_image_paths(sp_r)),
+    'prepare': sorted(collect_image_paths(sp_d)),
+    'attack': sorted(collect_image_paths(sp_a)),
+}
+sp = 'data/sprites/enemy/melee/bandit/slash/'
+sprites_enemy_melee_bandit_slash = {
+    'slash': sorted(collect_image_paths(sp))
 }
 
 sp = 'data/sprites/env/dust/'

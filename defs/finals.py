@@ -22,10 +22,7 @@ CAPTION: Final = "Metroidvania month"
 PATH_BACKGROUND: Final = "data/png/background.png"
 
 COLOR_BLACK: Final = pygame.Color((16, 13, 19))
-COLOR_RED: Final = pygame.Color((170, 0, 0))
-COLOR_GREEN_SUBTLE: Final = pygame.Color((132, 197, 166))
-COLOR_BROWN_MUD: Final = pygame.Color((106, 70, 52))
-COLOR_BROWN_MUD_LIGHT: Final = pygame.Color((240, 206, 189))
+COLOR_WHITE: Final = pygame.Color((255, 255, 255))
 COLOR_HERO_GREEN: Final = pygame.Color((40, 195, 151))
 COLOR_HERO_BLUE: Final = pygame.Color((153, 230, 230))
 COLOR_HERO_GRAY: Final = pygame.Color((53, 48, 31))

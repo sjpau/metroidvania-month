@@ -7,6 +7,7 @@ from entity.melee import Melee
 from render.animation import Animation
 import loader.assets as assets
 import loader.loader as loader
+from utils.utils import bool_dict_set_true
 
 class Player(
     pygame.sprite.Sprite,
@@ -55,14 +56,10 @@ class Player(
             k = event.key
             if k in self.keys_right:
                 self.want_move['right'] = True
-                self.set_attack_direction('right')
+                bool_dict_set_true(self.attack_direction,'right')
             elif k in self.keys_left:
                 self.want_move['left'] = True
-                self.set_attack_direction('left')
-            #elif k in self.keys_down:
-            #    self.set_attack_direction('down')
-            #elif k in self.keys_up:
-            #    self.set_attack_direction('up')
+                bool_dict_set_true(self.attack_direction,'left')
             elif k in self.keys_dash:
                 self.dash(self.attack_direction)
         if event.type == pygame.KEYUP:

@@ -10,10 +10,3 @@ class Combat:
             "down": False,
         }
         self.melee_hitbox = melee_hitbox
-    
-    def set_attack_direction(self, a_dir):
-        for d in self.attack_direction:
-            if a_dir == d:
-                self.attack_direction[a_dir] = True
-            else:
-                self.attack_direction[d] = False

@@ -1,6 +1,7 @@
 import pygame 
 from entity.entity import Entity
 from component.graphics import Graphics2D
+from utils.utils import bool_dict_set_true
 
 class Melee(
     pygame.sprite.Sprite,
@@ -19,20 +20,22 @@ class Melee(
         self.count_cooldown = False
         self.cd_counter = 0
         self.cooldown = cooldown
+        self.rect.x = -1000
+        self.rect.y = -1000
 
     def set_attack_hitbox_to_direction(self, attack_direction):
         if attack_direction['left']:
-            self.rect.bottomright = self.parent.rect.bottomright
-            self.set_direction('left')
+            self.rect.topright = self.parent.rect.topright
+            bool_dict_set_true(self.direction, 'left')
         elif attack_direction['right']:
             self.rect.topleft = self.parent.rect.topleft # This sort of requires parent width to be same as attack box on for other directions respectively
-            self.set_direction('right')
+            bool_dict_set_true(self.direction, 'right')
         if attack_direction['up']:
             self.rect.bottomleft = self.parent.rect.topleft
-            self.set_direction('up')
+            bool_dict_set_true(self.direction, 'up')
         if attack_direction['down']:
             self.rect.bottomleft = self.parent.rect.bottomleft 
-            self.set_direction('down')
+            bool_dict_set_true(self.direction, 'down')
 
     def hit(self, sg_colliders):
         hits = pygame.sprite.spritecollide(self, sg_colliders, False)
@@ -43,7 +46,6 @@ class Melee(
         return sprites_hit
 
     def update(self, dt):
-        # TODO add attack cd
         if self.count_cooldown:
             self.cd_counter += 1
             if self.cd_counter >= self.cooldown:
@@ -56,10 +58,7 @@ class Melee(
                 self.image.set_alpha(0)
         if self.attack:
             self.count_cooldown = True
-            if self.parent.attack_direction['left'] or self.parent.attack_direction['right']:
-                self.set_animation('slash')
-            else:
-                self.set_animation('slash_ver')
+            self.set_animation('slash')
             self.image.set_alpha(255)
             self.current_animation.done = False
 
