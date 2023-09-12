@@ -26,15 +26,10 @@ class State(object):
         }
         self.ready = False
 
-    def on_videoresize_child(self):
-        pass
-
     def on_videoresize(self):
-        print('called videoresize')
         self.surface = pygame.display.get_surface()
         self.s_width = self.surface.get_width()
         self.s_height = self.surface.get_height()
-        print(self.surface.get_size())
 
     def startup(self, persistent):
         self.persist = persistent

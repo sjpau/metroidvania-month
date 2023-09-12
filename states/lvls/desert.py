@@ -74,6 +74,8 @@ class DesertLevel(State):
         self.player_box = None
         self.player_persistent_data = None
         self.desired_next_state = ""
+        self.transition = -30
+        self.transition_start = False
 
     def on_exit(self):
         self.player_persistent_data = self.player.abilities
@@ -88,6 +90,8 @@ class DesertLevel(State):
         self.player_box = None
         self.player_persistent_data = None
         self.desired_next_state = ""
+        self.transition = -30
+        self.transition_start = False
         for group in self.sg_camera_groups:
             group.empty()
         self.desired_next_state = ""
@@ -227,7 +231,14 @@ class DesertLevel(State):
             self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(self.player.rect.center), finals.COLOR_HERO_BLUE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
         
         if self.desired_next_state != '':
-            self.done = True
+            self.transition_start = True
+        if self.transition_start:
+            self.transition += 1
+            if self.transition > 30:
+                self.done = True
+        if self.transition < 0:
+            self.transition += 1
+                
 
     def draw(self):
             self.canvas.blit(self.background, (0,0))
@@ -251,9 +262,14 @@ class DesertLevel(State):
 
             for spark in self.particles_sparks:
                 spark.draw(self.canvas, self.sg_camera)
+            if self.transition:
+                t_surf = pygame.Surface(self.canvas.get_size())
+                pygame.draw.circle(t_surf, finals.COLOR_WHITE, (finals.CANVAS_WIDTH//2, finals.CANVAS_HEIGHT//2), (30 - abs(self.transition)) * 8)
+                t_surf.set_colorkey(finals.COLOR_WHITE)
+                self.canvas.blit(t_surf, (0, 0))
             try: # NOTE ???
                 self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))
             except Exception as e:
                 print(e, self.surface.get_size()) 
-                print('Trying to get screen size again')
+                print('Ooops... Something went terribly wrong! Trying to get screen size again.')
                 self.surface = pygame.display.get_surface()
