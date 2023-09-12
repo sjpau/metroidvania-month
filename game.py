@@ -35,7 +35,6 @@ class Game(object):
             self.flip_state(desert_areas[self.desired_next_state])
             self.switch_music = True
         if self.state.handle['level update']:
-            print('yp')
             self.state.update(dt)
 
     def draw(self):

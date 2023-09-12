@@ -230,25 +230,30 @@ class DesertLevel(State):
             self.done = True
 
     def draw(self):
-        self.canvas.blit(self.background, (0,0))
-        for sprite in self.sg_background_layers.sprites():
-            self.canvas.blit(sprite.image, sprite.rect.topleft)
+            self.canvas.blit(self.background, (0,0))
+            for sprite in self.sg_background_layers.sprites():
+                self.canvas.blit(sprite.image, sprite.rect.topleft)
 
-        self.sg_clouds.render_all_parallax(self.canvas)
-        self.sg_dust_bg.render_all(self.canvas)
-        self.sg_decor_bg.render_all(self.canvas)
-        self.sg_tiles_non_colliders.render_all(self.canvas)
-        self.sg_tiles_colliders.render_all(self.canvas)
-        self.sg_tiles_spikes.render_all(self.canvas)
-        self.sg_shadow_sprites.render_all(self.canvas)
-        self.sg_camera.render_all(self.canvas)
-        self.sg_decor_fg.render_all(self.canvas)
-        self.sg_dust_fg.render_all(self.canvas)
-        self.sg_limits.render_all(self.canvas)
-        self.sg_enemies.render_all(self.canvas)
-        self.sg_attack_hitboxes.render_all(self.canvas)
-        self.sg_walls_enemy.render_all(self.canvas)
+            self.sg_clouds.render_all_parallax(self.canvas)
+            self.sg_dust_bg.render_all(self.canvas)
+            self.sg_decor_bg.render_all(self.canvas)
+            self.sg_tiles_non_colliders.render_all(self.canvas)
+            self.sg_tiles_colliders.render_all(self.canvas)
+            self.sg_tiles_spikes.render_all(self.canvas)
+            self.sg_shadow_sprites.render_all(self.canvas)
+            self.sg_camera.render_all(self.canvas)
+            self.sg_decor_fg.render_all(self.canvas)
+            self.sg_dust_fg.render_all(self.canvas)
+            self.sg_limits.render_all(self.canvas)
+            self.sg_enemies.render_all(self.canvas)
+            self.sg_attack_hitboxes.render_all(self.canvas)
+            self.sg_walls_enemy.render_all(self.canvas)
 
-        for spark in self.particles_sparks:
-            spark.draw(self.canvas, self.sg_camera)        
-        self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))
+            for spark in self.particles_sparks:
+                spark.draw(self.canvas, self.sg_camera)
+            try: # NOTE ???
+                self.surface.blit(pygame.transform.scale(self.canvas, (self.surface.get_size())), (0,0))
+            except Exception as e:
+                print(e, self.surface.get_size()) 
+                print('Trying to get screen size again')
+                self.surface = pygame.display.get_surface()
