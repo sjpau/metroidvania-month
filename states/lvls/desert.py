@@ -20,8 +20,8 @@ from utils.utils import bool_dict_set_true
 
 
 class DesertLevel(State):
-    def __init__(self, tmx_maps, map_key):
-        super().__init__()
+    def __init__(self, tmx_maps, map_key, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.tmx_maps = tmx_maps
         self.map_key = map_key
         self.background = png(finals.PATH_BACKGROUND)
@@ -244,7 +244,6 @@ class DesertLevel(State):
             self.canvas.blit(self.background, (0,0))
             for sprite in self.sg_background_layers.sprites():
                 self.canvas.blit(sprite.image, sprite.rect.topleft)
-
             self.sg_clouds.render_all_parallax(self.canvas)
             self.sg_dust_bg.render_all(self.canvas)
             self.sg_decor_bg.render_all(self.canvas)
