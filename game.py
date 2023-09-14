@@ -29,6 +29,7 @@ class Game(object):
     def update(self, dt):
         self.desired_next_state = self.state.desired_next_state
         if self.state.quit:
+            self.state.player_persistent_data.save()
             self.done = True
         elif self.state.done:
             self.state.done = False

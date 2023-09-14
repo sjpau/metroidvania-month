@@ -4,3 +4,6 @@ data/*
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Game save file
+persistent_data.json

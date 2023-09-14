@@ -20,13 +20,14 @@ class Spawner(
     pygame.sprite.Sprite,
     Entity,
 ):
-    def __init__(self, position, image, group, entity_spawn=None, active=True):
+    def __init__(self, position, image, group, t_id=0, entity_spawn=None, active=True):
         super().__init__(group)
         self.position = position
         Entity.__init__(self, image, position)
         self.image = image
         self.active = active
         self.entity_spawn = entity_spawn
+        self.t_id = t_id
 
     def spawn_entity(self, entity):
         if self.active:
@@ -80,5 +81,18 @@ class Wall(
         self.image = image
         self.climable = climable
 
+    def update(self, dt):
+        pass
+
+class Spike(
+    pygame.sprite.Sprite,
+    Entity,
+):
+    def __init__(self, position, image, group):
+        super().__init__(group)
+        self.position = position
+        Entity.__init__(self, image, position)
+        self.image = image
+    
     def update(self, dt):
         pass

@@ -76,6 +76,9 @@ class Player(
 
 
     def update(self, dt):
+        if self.invul:
+            self.invul -= 1
+            #TODO show some invulnerability thingy
         if pygame.mouse.get_pressed()[0] and not self.attack_melee.cd_counter:
             self.attack_melee.attack = True
         if self.want_move['right']:

@@ -7,10 +7,12 @@ pygame.display.set_caption(finals.CAPTION)
 from game import Game
 from entity.player import Player
 import defs.lvl as lvl
+from loader.save import PersistentData
 
-lvl.desert_areas['desert_one'].preload()
-
-game = Game(lvl.desert_areas['desert_one']) # TODO start from main menu
+save = PersistentData()
+save.load('persistent_data.json')
+lvl.states_non_gameplay['main_menu'].player_persistent_data = save
+game = Game(lvl.states_non_gameplay['main_menu']) 
 game.run()
 
 pygame.quit()

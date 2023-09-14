@@ -11,6 +11,7 @@ class Font():
         current_char_width = 0
         self.characters = {}
         character_count = 0
+        self.color = pygame.Color((255, 0 ,0))
         for x in range(font_img.get_width()):
             c = font_img.get_at((x, 0))
             if c[0] == 127:
@@ -22,6 +23,19 @@ class Font():
                 current_char_width += 1
         self.space_width = self.characters['A'].get_width()
         self.char_width, self.char_height = self.characters['A'].get_size() 
+
+    def change_color(self, color):
+        self.color = color
+        for c in self.characters:
+            mask = pygame.mask.from_surface(self.characters[c])
+            image = mask.to_surface()
+            w, h = image.get_size()
+            image.set_colorkey((0,0,0))
+            for x in range(w):
+                for y in range(h):
+                    if image.get_at((x,y))[0] != 0:
+                        image.set_at((x,y), color)
+            self.characters[c] = image
 
     def calculate_center(self, text, position):
         matrix_size = int(ceil(sqrt(len(text))))

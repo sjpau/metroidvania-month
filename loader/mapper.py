@@ -1,7 +1,7 @@
 import pygame
 import pytmx
 from entity.tile import Tile
-from entity.tmx import Decoration, Spawner, Trigger, Limit, Wall
+from entity.tmx import Decoration, Spawner, Trigger, Limit, Wall, Spike
 from defs.finals import tile_size
 
 def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
@@ -12,6 +12,7 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
     tmx_limits = []
     tmx_walls = []
     tmx_enemy_walls = []
+    tmx_spikes = []
     # Tiles
     for layer in tmx_data[lvl_name].visible_layers:
         if hasattr(layer, 'data'):
@@ -47,6 +48,10 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
                 surf.set_alpha(0)
                 t_id = obj.id
                 t_type = obj.t_type
+                if t_type == "sender":
+                    desired_receiver_id = obj.desired_receiver_id
+                else:
+                    desired_receiver_id = ""
                 action = obj.action
                 transition_to = obj.transition_to_class
                 t = Trigger(pos, surf, obj_layers_to_groups[obj_layer_name], t_type=t_type, t_id=t_id, desired_receiver_id=desired_receiver_id, action=action, action_receiver=transition_to)
@@ -56,7 +61,8 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
                 surf.set_alpha(0)
                 entity_spawn = obj.entity
                 active = obj.active
-                s = Spawner(pos, surf, obj_layers_to_groups[obj_layer_name], entity_spawn=entity_spawn, active=active)
+                t_id = obj.id
+                s = Spawner(pos, surf, obj_layers_to_groups[obj_layer_name], entity_spawn=entity_spawn, active=active, t_id=t_id)
                 tmx_spawners.append(s)
             if obj.type == 'Limit':
                 pos = pygame.math.Vector2(obj.x, obj.y)
@@ -76,5 +82,11 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
                 surf.set_alpha(0)
                 w = Wall(pos, surf, obj_layers_to_groups[obj_layer_name])
                 tmx_enemy_walls.append(w)
+            if obj.type == 'Spike':
+                pos = pygame.math.Vector2(obj.x, obj.y)
+                surf = pygame.Surface((int(obj.width), int(obj.height)))
+                surf.set_alpha(0)
+                s = Spike(pos, surf, obj_layers_to_groups[obj_layer_name])
+                tmx_spikes.append(s)
 
-    return tmx_tiles, tmx_decor, tmx_triggers, tmx_spawners, tmx_limits, tmx_walls, tmx_enemy_walls
+    return tmx_tiles, tmx_decor, tmx_triggers, tmx_spawners, tmx_limits, tmx_walls, tmx_enemy_walls, tmx_spikes

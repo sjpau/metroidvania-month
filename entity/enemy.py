@@ -64,6 +64,8 @@ class MeleeBandit(Enemy):
 
 
     def update(self, dt):
+        if self.invul:
+            self.invul -= 1
         self.attack_trigger_rect.center = self.rect.center
         self.behave()
         if self.want_move['right']:

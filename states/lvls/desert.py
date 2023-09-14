@@ -42,6 +42,7 @@ class DesertLevel(State):
         self.sg_background_layers = Camera(self.canvas)
         self.sg_clouds = Camera(self.canvas)
         self.sg_walls_enemy = Camera(self.canvas)
+        self.sg_spikes = Camera(self.canvas)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
@@ -50,7 +51,7 @@ class DesertLevel(State):
                                  self.sg_shadow_sprites, self.sg_limits,
                                  self.sg_enemies, self.sg_background_layers,
                                  self.sg_clouds, self.sg_walls_enemy,
-                                 self.sg_tiles_spikes,
+                                 self.sg_tiles_spikes, self.sg_spikes,
                                  ]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
@@ -65,6 +66,7 @@ class DesertLevel(State):
             'camera_limits': self.sg_limits,
             'walls_invisible': self.sg_tiles_colliders,
             'walls_invisible_enemy': self.sg_walls_enemy,
+            'spike_colliders': self.sg_spikes,
         }
         self.player_shadow_cd = 40
         self.player_shadow_count = 0
@@ -78,7 +80,7 @@ class DesertLevel(State):
         self.transition_start = False
 
     def on_exit(self):
-        self.player_persistent_data = self.player.abilities
+        pass
 
     def preload(self, player_persistent_data=None):
         # Clean up
@@ -88,7 +90,8 @@ class DesertLevel(State):
         self.particles_dust = []
         self.particles_sparks = []
         self.player_box = None
-        self.player_persistent_data = None
+        self.player_persistent_data = player_persistent_data
+        self.player_persistent_data.current_area = self.name
         self.desired_next_state = ""
         self.transition = -30
         self.transition_start = False
@@ -96,18 +99,22 @@ class DesertLevel(State):
             group.empty()
         self.desired_next_state = ""
         # Load map data
-        _, _, _, _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, self.map_key, 
+        _, _, _, _, _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, self.map_key, 
                                     self.tmx_tile_layers_to_sg, 
                                     self.tmx_obj_layers_to_sg)
         # Managing entities
         self.player = Player(pygame.math.Vector2(0,0), self.sg_camera, (16, 16),
                             pygame.surface.Surface((finals.tile_size, finals.tile_size)), attack_group=self.sg_attack_hitboxes)
-        if player_persistent_data is not None:
-            self.player.abilities = player_persistent_data
+        if self.player_persistent_data is not None:
+            self.player.abilities = self.player_persistent_data.player_abilities
         self.player_box = pygame.FRect(self.canvas.get_rect())
         for spawner in self.sg_spawners:
-            if spawner.entity_spawn == 'player':
-                spawner.spawn_entity(self.player)
+            if spawner.entity_spawn == 'player': # TODO check for id in persistence variable
+                if self.player_persistent_data.spawner_id is not None:
+                    if spawner.t_id == int(self.player_persistent_data.spawner_id):
+                        spawner.spawn_entity(self.player)
+                else:
+                    spawner.spawn_entity(self.player)
             if spawner.entity_spawn == 'melee_bandit':
                 animations_enemy_melee_bandit = {
                     'idle': Animation(load_sprites(sprites_enemy_melee_bandit['idle']), 300),
@@ -175,12 +182,17 @@ class DesertLevel(State):
         self.player.entity_movement_collision_vertical([self.sg_tiles_colliders])
 
         for enemy in self.sg_enemies:
+            if enemy.health <= 0: # TODO play death anim
+                self.sg_enemies.remove(enemy)
             enemy.entity_movement_collision_horizontal([self.sg_tiles_colliders, self.sg_walls_enemy])
             enemy.entity_movement_collision_vertical([self.sg_tiles_colliders, self.sg_walls_enemy])
             if enemy.attack_melee.attack:
                 dir_key = [key for key, value in enemy.attack_direction.items() if value]
                 for h in enemy.attack_melee.hit(self.sg_camera):
                     self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(h.rect.center), finals.COLOR_HERO_GREEN, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
+                    if not h.invul:
+                        h.health -= 1
+                        h.invul = 50
             if enemy.attack_trigger_rect.colliderect(self.player.rect):
                 if enemy.rect.x > self.player.rect.x:
                     bool_dict_set_true(enemy.direction, 'left')
@@ -195,6 +207,7 @@ class DesertLevel(State):
                         self.player.rect.topleft = trigger.rect.topleft
                         break
             if hit.action == 'transist':
+                self.player_persistent_data.spawner_id = hit.desired_receiver_id
                 self.desired_next_state = hit.action_receiver
         # Player logic
         if self.player.attack_melee.attack:
@@ -203,11 +216,19 @@ class DesertLevel(State):
                 dir_key = [key for key, value in self.player.attack_direction.items() if value]
                 if not h.action_defend:
                     self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(h.rect.center), finals.COLOR_HERO_BLUE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
+                    if not h.invul:
+                        h.health -= 1
+                        h.invul = 100
                 else:
                     self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(h.rect.center), finals.COLOR_WHITE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
         for hit in pygame.sprite.spritecollide(self.player, self.sg_enemies, False):
             hit.action_defend = True
-
+        for _ in pygame.sprite.spritecollide(self.player, self.sg_spikes, False):
+            if not self.player.invul:
+                self.player.health -=1
+                self.player.invul = 100
+        if self.player.health <= 0:
+            self.desired_next_state = self.name
         self.player_box.center = self.player.rect.center
         # Dust particle generation
         dust_pos = pygame.math.Vector2(random.randint(int(self.player_box.x), int(self.player_box.x + self.player_box.width)),  
@@ -249,6 +270,7 @@ class DesertLevel(State):
             self.sg_decor_bg.render_all(self.canvas)
             self.sg_tiles_non_colliders.render_all(self.canvas)
             self.sg_tiles_colliders.render_all(self.canvas)
+            self.sg_spikes.render_all(self.canvas)
             self.sg_tiles_spikes.render_all(self.canvas)
             self.sg_shadow_sprites.render_all(self.canvas)
             self.sg_camera.render_all(self.canvas)
@@ -258,7 +280,7 @@ class DesertLevel(State):
             self.sg_enemies.render_all(self.canvas)
             self.sg_attack_hitboxes.render_all(self.canvas)
             self.sg_walls_enemy.render_all(self.canvas)
-
+            self.sg_spikes.render_all(self.canvas)
             for spark in self.particles_sparks:
                 spark.draw(self.canvas, self.sg_camera)
             if self.transition:
