@@ -7,7 +7,7 @@ class MainMenu(State):
         super().__init__(*args, **kwargs)
         self.choices = [ # TODO add settings
             'Play',
-            'Credits',
+          #  'Credits',
             'Exit',
         ]
         self.choice_current = 0
