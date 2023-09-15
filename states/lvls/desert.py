@@ -13,10 +13,11 @@ from loader.loader import png
 from entity.particles import ParticleDust, ParticleSpark
 import random
 from math import pi
-from loader.assets import sprites_background_layers, sprites_clouds, sprites_enemy_melee_bandit, sprites_enemy_melee_bandit_slash
+from loader.assets import sprites_background_layers, sprites_clouds, sprites_enemy_melee_bandit, sprites_enemy_melee_bandit_slash, sprites_icons_health
 from render.animation import Animation
 from loader.loader import load_sprites
 from utils.utils import bool_dict_set_true
+from ui.buttons import Icon
 
 
 class DesertLevel(State):
@@ -43,6 +44,8 @@ class DesertLevel(State):
         self.sg_clouds = Camera(self.canvas)
         self.sg_walls_enemy = Camera(self.canvas)
         self.sg_spikes = Camera(self.canvas)
+        self.sg_pickups = Camera(self.canvas)
+        self.sg_text_objects = Camera(self.canvas)
         self.sg_camera_groups = [self.sg_tiles_colliders, self.sg_tiles_non_colliders,
                                  self.sg_decor_fg, self.sg_decor_bg,
                                  self.sg_camera, self.sg_triggers,
@@ -52,6 +55,7 @@ class DesertLevel(State):
                                  self.sg_enemies, self.sg_background_layers,
                                  self.sg_clouds, self.sg_walls_enemy,
                                  self.sg_tiles_spikes, self.sg_spikes,
+                                 self.sg_pickups, self.sg_text_objects,
                                  ]
         self.tmx_tile_layers_to_sg = {
             'colliders': self.sg_tiles_colliders,
@@ -67,6 +71,8 @@ class DesertLevel(State):
             'walls_invisible': self.sg_tiles_colliders,
             'walls_invisible_enemy': self.sg_walls_enemy,
             'spike_colliders': self.sg_spikes,
+            'pickups': self.sg_pickups,
+            'text': self.sg_text_objects,
         }
         self.player_shadow_cd = 40
         self.player_shadow_count = 0
@@ -78,6 +84,9 @@ class DesertLevel(State):
         self.desired_next_state = ""
         self.transition = -30
         self.transition_start = False
+        self.ui_icons = {
+            'health': []
+        }
 
     def on_exit(self):
         pass
@@ -95,11 +104,13 @@ class DesertLevel(State):
         self.desired_next_state = ""
         self.transition = -30
         self.transition_start = False
+        for key in self.ui_icons:
+            self.ui_icons[key] = []
         for group in self.sg_camera_groups:
             group.empty()
         self.desired_next_state = ""
         # Load map data
-        _, _, _, _, _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, self.map_key, 
+        _, _, _, _, _, _, _, _, _, _ = mapper.unpack_tmx(self.tmx_maps, self.map_key, 
                                     self.tmx_tile_layers_to_sg, 
                                     self.tmx_obj_layers_to_sg)
         # Managing entities
@@ -122,6 +133,7 @@ class DesertLevel(State):
                     'defend': Animation(load_sprites(sprites_enemy_melee_bandit['defend']), 200),
                     'prepare': Animation(load_sprites(sprites_enemy_melee_bandit['prepare']), 200, play_once=True),
                     'attack': Animation(load_sprites(sprites_enemy_melee_bandit['attack']), 100, play_once=True),
+                    'death': Animation(load_sprites(sprites_enemy_melee_bandit['death']), 200, play_once=True),
                 }
                 enemy_mas_anims = {
                     'slash': Animation(load_sprites(sprites_enemy_melee_bandit_slash['slash']), 100, play_once=True)
@@ -157,6 +169,16 @@ class DesertLevel(State):
         self.cloud_handler = CloudHandler(load_sprites(sprites_clouds), self.sg_clouds)
         self.ready = True
 
+        ix = 10
+        iy = 10
+        health_anims = {
+                    'default': Animation(load_sprites(sprites_icons_health['default']), 300),
+                    'protected': Animation(load_sprites(sprites_icons_health['protected']), 200),
+        }
+        for point in range(self.player.health):
+            self.ui_icons['health'].append(Icon([ix, iy], pygame.Surface((8, 8)), animations=health_anims))
+            ix += 10
+
     def get_event(self, event):
         if event.type == pygame.QUIT:
             self.quit = True
@@ -166,7 +188,7 @@ class DesertLevel(State):
             self.player.handle_input(event)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.handle['level update'] = not self.handle['level update']
+                self.desired_next_state = 'main_menu'
 
     def update(self, dt):
         for group in self.sg_camera_groups:
@@ -182,7 +204,7 @@ class DesertLevel(State):
         self.player.entity_movement_collision_vertical([self.sg_tiles_colliders])
 
         for enemy in self.sg_enemies:
-            if enemy.health <= 0: # TODO play death anim
+            if not enemy.alive:
                 self.sg_enemies.remove(enemy)
             enemy.entity_movement_collision_horizontal([self.sg_tiles_colliders, self.sg_walls_enemy])
             enemy.entity_movement_collision_vertical([self.sg_tiles_colliders, self.sg_walls_enemy])
@@ -210,6 +232,10 @@ class DesertLevel(State):
                 self.player_persistent_data.spawner_id = hit.desired_receiver_id
                 self.desired_next_state = hit.action_receiver
         # Player logic
+        for pickup in pygame.sprite.spritecollide(self.player, self.sg_pickups, True):
+            self.player.abilities[pickup.ability] = True
+            pickup.active = False
+            self.player.ability_remove_on_death.append(pickup.ability)
         if self.player.attack_melee.attack:
             hits = self.player.attack_melee.hit(self.sg_enemies)
             for h in hits:
@@ -228,6 +254,8 @@ class DesertLevel(State):
                 self.player.health -=1
                 self.player.invul = 100
         if self.player.health <= 0:
+            for a in self.player.ability_remove_on_death:
+                self.player.abilities[a] = False
             self.desired_next_state = self.name
         self.player_box.center = self.player.rect.center
         # Dust particle generation
@@ -250,6 +278,18 @@ class DesertLevel(State):
             ShadowSprite(self.player, self.sg_shadow_sprites, finals.COLOR_HERO_BLUE)
             dir_key = [key for key, value in self.player.direction.items() if value]
             self.particles_sparks.append(ParticleSpark(pygame.math.Vector2(self.player.rect.center), finals.COLOR_HERO_BLUE, random.random() - 0.5 + pi * self.player.direction_pi[dir_key[0]], 2 + random.random()))
+
+        # Health icons TODO: refactor
+        for icon in self.ui_icons['health']:
+            icon.active = False
+            icon.update(dt)
+
+        for point in range(self.player.health):
+            self.ui_icons['health'][point].active = True
+            if self.player.invul:
+                self.ui_icons['health'][point].set_animation('protected')
+            else:
+                self.ui_icons['health'][point].set_animation('default')
         
         if self.desired_next_state != '':
             self.transition_start = True
@@ -281,8 +321,14 @@ class DesertLevel(State):
             self.sg_attack_hitboxes.render_all(self.canvas)
             self.sg_walls_enemy.render_all(self.canvas)
             self.sg_spikes.render_all(self.canvas)
+            self.sg_pickups.render_all(self.canvas)
+            self.sg_text_objects.render_all(self.canvas)
+            for obj in self.sg_text_objects:
+                obj.font.render(obj.image, obj.text, (obj.image.get_width()/2, obj.image.get_height()/2), center=True)
             for spark in self.particles_sparks:
                 spark.draw(self.canvas, self.sg_camera)
+            for icon in self.ui_icons['health']:
+                icon.draw(self.canvas)
             if self.transition:
                 t_surf = pygame.Surface(self.canvas.get_size())
                 pygame.draw.circle(t_surf, finals.COLOR_WHITE, (finals.CANVAS_WIDTH//2, finals.CANVAS_HEIGHT//2), (30 - abs(self.transition)) * 8)

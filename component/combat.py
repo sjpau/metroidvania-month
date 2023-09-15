@@ -12,3 +12,4 @@ class Combat:
         self.melee_hitbox = melee_hitbox
         self.health = 3
         self.invul = 0
+        self.alive = True

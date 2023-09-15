@@ -11,8 +11,8 @@ from loader.save import PersistentData
 
 save = PersistentData()
 save.load('persistent_data.json')
-lvl.states_non_gameplay['main_menu'].player_persistent_data = save
-game = Game(lvl.states_non_gameplay['main_menu']) 
+lvl.states['main_menu'].player_persistent_data = save
+game = Game(lvl.states['main_menu']) 
 game.run()
 
 pygame.quit()

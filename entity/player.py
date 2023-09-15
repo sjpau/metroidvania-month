@@ -61,7 +61,8 @@ class Player(
                 self.want_move['left'] = True
                 bool_dict_set_true(self.attack_direction,'left')
             elif k in self.keys_dash:
-                self.dash(self.attack_direction)
+                if self.abilities['dash']:
+                    self.dash(self.attack_direction)
         if event.type == pygame.KEYUP:
             k = event.key
             if k in self.keys_jump:

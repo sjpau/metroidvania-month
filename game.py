@@ -1,6 +1,6 @@
 import pygame
 import debug
-from defs.lvl import desert_areas
+from defs.lvl import states
 
 
 class Game(object):
@@ -33,7 +33,7 @@ class Game(object):
             self.done = True
         elif self.state.done:
             self.state.done = False
-            self.flip_state(desert_areas[self.desired_next_state])
+            self.flip_state(states[self.desired_next_state])
             self.switch_music = True
         if self.state.handle['level update']:
             self.state.update(dt)

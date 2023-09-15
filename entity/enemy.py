@@ -103,5 +103,9 @@ class MeleeBandit(Enemy):
         if self.attack_melee.attack:
             self.set_animation('attack')
             self.attack_melee.count_cooldown = True
+        if self.health <= 0:
+            self.set_animation('death')
+        if self.current_animation == self.animations['death'] and self.current_animation.done:
+            self.alive = False
         self.attack_melee.set_attack_hitbox_to_direction(self.attack_direction)
         self.graphics_update_animation(dt)

@@ -1,6 +1,6 @@
 import pygame
 
-class Animation():
+class Animation(): # TODO fix animation stuttering or come up with better implementation
     def __init__(self, sprites, speed, play_once=False):
         self.sprites = sprites
         self.masks = []

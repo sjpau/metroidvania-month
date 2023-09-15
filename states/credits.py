@@ -2,13 +2,15 @@ import pygame
 from states.state import State
 from ui.buttons import ButtonDefault
 
-class MainMenu(State):
+class Credits(State):
     def __init__(self, save_data, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.choices = [ # TODO add settings
-            'Play',
-            'Credits',
-            'Exit',
+        self.text = [ # TODO add settings
+            'Prototype created by:',
+            'sjpau - code, sfx, artwork, design',
+            '',
+            'Credits:',
+            'Font - dafluffypotato.com'
         ]
         self.choice_current = 0
         self.anchors = {

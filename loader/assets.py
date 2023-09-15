@@ -39,12 +39,14 @@ sp_w = 'data/sprites/enemy/melee/bandit/walk/'
 sp_r = 'data/sprites/enemy/melee/bandit/defend/'
 sp_d = 'data/sprites/enemy/melee/bandit/prepare/'
 sp_a = 'data/sprites/enemy/melee/bandit/attack/'
+sp_v = 'data/sprites/enemy/melee/bandit/death/'
 sprites_enemy_melee_bandit = {
     'idle': sorted(collect_image_paths(sp)),
     'walk': sorted(collect_image_paths(sp_w)),
     'defend': sorted(collect_image_paths(sp_r)),
     'prepare': sorted(collect_image_paths(sp_d)),
     'attack': sorted(collect_image_paths(sp_a)),
+    'death': sorted(collect_image_paths(sp_v)),
 }
 sp = 'data/sprites/enemy/melee/bandit/slash/'
 sprites_enemy_melee_bandit_slash = {
@@ -54,4 +56,11 @@ sprites_enemy_melee_bandit_slash = {
 sp = 'data/sprites/env/dust/'
 sprites_env_dust = {
     'dust': sorted(collect_image_paths(sp)),
+}
+
+sp = 'data/sprites/icons/health/regular/'
+sp_a = 'data/sprites/icons/health/protected/'
+sprites_icons_health = {
+    'default': sorted(collect_image_paths(sp)),
+    'protected': sorted(collect_image_paths(sp_a)),
 }

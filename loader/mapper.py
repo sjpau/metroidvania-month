@@ -1,8 +1,10 @@
 import pygame
 import pytmx
 from entity.tile import Tile
-from entity.tmx import Decoration, Spawner, Trigger, Limit, Wall, Spike
+from entity.tmx import Decoration, Spawner, Trigger, Limit, Wall, Spike, Pickup, TextObject
 from defs.finals import tile_size
+from loader.loader import png
+from render.font import Font
 
 def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
     tmx_tiles = []
@@ -13,6 +15,8 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
     tmx_walls = []
     tmx_enemy_walls = []
     tmx_spikes = []
+    tmx_pickups = []
+    tmx_text = []
     # Tiles
     for layer in tmx_data[lvl_name].visible_layers:
         if hasattr(layer, 'data'):
@@ -88,5 +92,15 @@ def unpack_tmx(tmx_data, lvl_name, tile_layers_to_groups, obj_layers_to_groups):
                 surf.set_alpha(0)
                 s = Spike(pos, surf, obj_layers_to_groups[obj_layer_name])
                 tmx_spikes.append(s)
+            if obj.type == 'Pickup':
+                pos = pygame.math.Vector2(obj.x, obj.y)
+                surf = png('data/png/misc/not_found.png')
+                p = Pickup(pos, surf, obj_layers_to_groups[obj_layer_name], active=obj.active, ability=obj.ability)
+                tmx_pickups.append(p)
+            if obj.type == 'TextObject':
+                pos = pygame.math.Vector2(obj.x, obj.y)
+                surf = pygame.Surface((obj.width, obj.height))
+                surf.set_colorkey((0,0,0))
+                t = TextObject(pos, surf, obj_layers_to_groups[obj_layer_name], obj.text, Font('data/png/font/small_font.png'))
 
-    return tmx_tiles, tmx_decor, tmx_triggers, tmx_spawners, tmx_limits, tmx_walls, tmx_enemy_walls, tmx_spikes
+    return tmx_tiles, tmx_decor, tmx_triggers, tmx_spawners, tmx_limits, tmx_walls, tmx_enemy_walls, tmx_spikes, tmx_pickups, tmx_text

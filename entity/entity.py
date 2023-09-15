@@ -22,6 +22,7 @@ class Entity:
             "up": 1.5,
             "down": 0.5,
         }
+        self.ability_remove_on_death = []
         self.want_be_flipped_ver = False
 
     def entity_movement_collision_horizontal(self, collide_groups):
